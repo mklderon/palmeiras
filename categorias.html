@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Soccer - Categorías</title>
+
+    <!-- ESTILOS (CSS) -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-whitet: #fff;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-whitet);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Main */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        header.page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .btn-create {
+            padding: 0.6rem 1.2rem;
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .year-filter-container {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .year-select {
+            padding: 0.5rem;
+            border: 1px solid var(--color-gray-medium);
+            background: var(--color-whitet);
+            font-family: var(--font-family);
+        }
+
+        /* Grid */
+        .categorys-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Tarjeta */
+        .category-card {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: transform 0.2s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            padding: 1rem;
+            background-color: var(--color-whitet);
+            border-bottom: 1px solid var(--color-gray-medium);
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .category-years {
+            font-size: 0.75rem;
+            color: var(--color-gray-dark);
+            background: #fff;
+            padding: 2px 6px;
+            border: 1px solid var(--color-gray-medium);
+        }
+
+        /* NUEVO: Estilo del Profesor */
+        .coach-info {
+            font-size: 0.8rem;
+            color: var(--color-gray-dark);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .coach-info::before {
+            content: "👤";
+        }
+
+        .card-actions {
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--color-gray-medium);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .card-btn {
+            flex: 1;
+            padding: 0.4rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: 1px solid var(--color-gray-medium);
+            background: #fff;
+        }
+
+        .card-btn:hover {
+            background: var(--color-text);
+            color: var(--color-bg);
+        }
+
+        .card-body {
+            padding: 1rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 250px;
+        }
+
+        .player-row {
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed var(--color-gray-medium);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-player {
+            color: #c53030;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-decoration: underline;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background-color: var(--color-bg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 550px;
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal h3 {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 0.5rem;
+        }
+
+        .form-category {
+            margin-bottom: 1rem;
+        }
+
+        .form-category label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-gray-dark);
+        }
+
+        .form-category input,
+        .form-category select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--color-gray-medium);
+            background-color: var(--color-whitet);
+            font-family: var(--font-family);
+        }
+
+        /* Checkboxes Años */
+        .years-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .year-checkbox {
+            display: none;
+        }
+
+        .year-label {
+            display: block;
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--color-whitet);
+            border: 1px solid var(--color-gray-medium);
+            cursor: pointer;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .year-checkbox:checked+.year-label {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border-color: var(--color-text);
+            font-weight: bold;
+        }
+
+        .player-list-select {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.5rem;
+            background: #fff;
+        }
+
+        .player-option {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .player-option:hover {
+            background-color: var(--color-whitet);
+        }
+
+        .player-option input {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .current-category-info {
+            font-size: 0.75rem;
+            color: #c05621;
+            margin-left: auto;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- INICIO: GUARDIÁN UNIVERSAL DE ACCESO (Copiar en TODOS los archivos .html) -->
+    <script>
+        (function () {
+            const SESSION_KEY = 'mini_json_session_data';
+
+            // 1. Obtener sesión actual
+            const sessionData = localStorage.getItem(SESSION_KEY);
+            const session = sessionData ? JSON.parse(sessionData) : null;
+
+            // Si no hay sesión y no estamos en Login -> Echar
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Si no hay sesión y estamos en Login -> No hacer nada más
+            if (!session) return;
+
+            // 2. Definir Mapa de Permisos (Que rol puede ver que archivo)
+            const permissions = {
+                'admin': [
+                    'dashboard.html',
+                    'usuarios.html',
+                    'jugadores.html',
+                    'categorias.html',
+                    'tutores.html',
+                    'pagos.html',
+                    'calendario.html'
+                ],
+                'profesor': [
+                    'dashboard_profesor.html'
+                    // Nota: Calendario completo está bloqueado según tu requerimiento "solo ve su dashboard"
+                ],
+                'jugador': [
+                    'dashboard_jugador.html'
+                ],
+                'tutor': [
+                    'dashboard_tutor.html'
+                ]
+            };
+
+            const role = session.rol.toLowerCase();
+            const allowedPages = permissions[role] || [];
+
+            // 3. Obtener el nombre del archivo actual (ej: "dashboard.html")
+            const currentFilename = window.location.pathname.split('/').pop();
+
+            // 4. Lógica de REDIRECCIÓN (Expulsión de URL prohibida)
+            // Si el archivo actual NO está en la lista permitida del rol
+            if (!allowedPages.includes(currentFilename)) {
+                // Redirigir al primer dashboard permitido para ese rol
+                window.location.href = allowedPages[0] || 'login.html';
+                return;
+            }
+
+            // 5. Lógica de OCULTAR MENÚS (UI)
+            // Buscar todos los enlaces en el sidebar y ocultar los no permitidos
+            // Buscamos cualquier <a> que esté dentro de un <aside>
+            const sidebarLinks = document.querySelectorAll('aside a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Verificar si ese href está en la lista permitida
+                if (href && !allowedPages.includes(href)) {
+                    link.style.display = 'none'; // Ocultar enlace
+                }
+            });
+
+        })();
+    </script>
+    <!-- FIN GUARDIÁN UNIVERSAL -->
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">MVP Soccer</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="usuarios.html">Usuarios</a></li>
+            <li><a href="categorias.html" class="active">Categorías</a></li>
+            <li><a href="jugadores.html">Jugadores</a></li>
+            <li><a href="tutores.html">Tutores</a></li>
+            <li><a href="pagos.html">Pagos</a></li>
+            <li><a href="calendario.html">Calendario</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="sidebar-user-name">Usuario</span>
+            <button id="sidebar-logout-btn" class="btn-logout-sidebar">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+        <header class="page-header">
+            <h2>Gestión de Categorías</h2>
+            <button id="btn-create-category" class="btn-create">+ Nueva Categoría</button>
+        </header>
+
+        <div class="year-filter-container">
+            <label>Filtrar (Año):</label>
+            <select id="year-filter" class="year-select">
+                <option value="all">Todas</option>
+            </select>
+        </div>
+
+        <div id="categorys-container" class="categorys-grid">
+            <!-- Cards -->
+        </div>
+    </main>
+
+    <!-- MODAL CREAR CATEGORÍA (Con Profesor) -->
+    <div id="category-modal" class="modal-overlay">
+        <div class="modal">
+            <h3 id="modal-category-title">Nueva Categoría</h3>
+            <form id="category-form">
+                <div class="form-category">
+                    <label>Nombre de la Categoría</label>
+                    <input type="text" id="category-name" placeholder="Ej: Sub-17 A" required>
+                </div>
+
+                <div class="form-category">
+                    <label>Profesor Encargado</label>
+                    <select id="category-coach" required>
+                        <option value="">Seleccione un usuario...</option>
+                    </select>
+                </div>
+
+                <div class="form-category">
+                    <label>Años de Nacimiento</label>
+                    <div class="years-grid" id="years-checkbox-container"></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="btn-cancel-category-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-save">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NÓMINA -->
+    <div id="roster-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 600px;">
+            <h3>Nómina: <span id="roster-category-name" style="color:var(--color-gray-dark)"></span></h3>
+            <div class="form-category">
+                <label>Jugadores (<span id="roster-years-info"></span>)</label>
+                <div class="player-list-select" id="roster-players-list"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="btn-close-roster" class="btn-secondary">Cerrar</button>
+                <button type="button" id="btn-save-roster" class="btn-save">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        class AuthService {
+            static getSession() {
+                const data = localStorage.getItem(SESSION_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            static logout() {
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        }
+
+        class DBService {
+            getData() {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            saveData(data) {
+                localStorage.setItem(DB_KEY, JSON.stringify(data));
+            }
+        }
+
+        class CategoriasController {
+            constructor() {
+                this.db = new DBService();
+                this.user = AuthService.getSession();
+
+                // DOM
+                this.container = document.getElementById('categorys-container');
+                this.yearFilter = document.getElementById('year-filter');
+
+                this.categoryModal = document.getElementById('category-modal');
+                this.categoryForm = document.getElementById('category-form');
+                this.categoryTitle = document.getElementById('modal-category-title');
+                this.inputCategoryName = document.getElementById('category-name');
+                this.selectCoach = document.getElementById('category-coach');
+                this.yearsContainer = document.getElementById('years-checkbox-container');
+
+                this.rosterModal = document.getElementById('roster-modal');
+                this.rosterCategoryName = document.getElementById('roster-category-name');
+                this.rosterYearsInfo = document.getElementById('roster-years-info');
+                this.rosterPlayersList = document.getElementById('roster-players-list');
+
+                this.currentCategoryId = null;
+
+                this.init();
+            }
+
+            init() {
+                if (!this.user) { window.location.href = 'login.html'; return; }
+
+                document.getElementById('sidebar-logout-btn').addEventListener('click', () => AuthService.logout());
+                document.getElementById('sidebar-user-name').textContent = this.user.nombre;
+
+                document.getElementById('btn-create-category').addEventListener('click', () => this.openCategoryModal());
+                document.getElementById('btn-cancel-category-modal').addEventListener('click', () => this.closeCategoryModal());
+                this.categoryForm.addEventListener('submit', (e) => this.handleSaveCategory(e));
+
+                document.getElementById('btn-close-roster').addEventListener('click', () => this.closeRosterModal());
+                document.getElementById('btn-save-roster').addEventListener('click', () => this.saveRosterChanges());
+
+                this.yearFilter.addEventListener('change', () => this.render());
+
+                this.render();
+            }
+
+            // --- Helpers Profesor ---
+            populateCoachSelect() {
+                const db = this.db.getData();
+                this.selectCoach.innerHTML = '<option value="">Sin asignar</option>';
+
+                if (db && db['mvp soccer'] && db['mvp soccer'].usuarios && db['mvp soccer'].usuarios.rows) {
+                    const users = db['mvp soccer'].usuarios.rows.filter(u => u.estado === 'activo' && u.rol === 'profesor');
+                    users.forEach(u => {
+                        const opt = document.createElement('option');
+                        opt.value = u.id;
+                        opt.textContent = u.nombre;
+                        this.selectCoach.appendChild(opt);
+                    });
+                }
+            }
+
+            render() {
+                const db = this.db.getData();
+                const categorias = db['mvp soccer'].categorias.rows;
+                const jugadores = db['mvp soccer'].jugadores.rows;
+                const filterVal = this.yearFilter.value;
+
+                if (this.yearFilter.options.length <= 1) {
+                    const allYears = new Set();
+                    categorias.forEach(c => {
+                        c.years_target.split(',').forEach(y => allYears.add(y.trim()));
+                    });
+                    const sortedYears = Array.from(allYears).sort();
+                    sortedYears.forEach(y => {
+                        const opt = document.createElement('option');
+                        opt.value = y;
+                        opt.textContent = `Año ${y}`;
+                        this.yearFilter.appendChild(opt);
+                    });
+                }
+
+                this.container.innerHTML = '';
+
+                const categoriasFiltradas = filterVal === 'all'
+                    ? categorias
+                    : categorias.filter(c => c.years_target.includes(filterVal));
+
+                if (categoriasFiltradas.length === 0) {
+                    this.container.innerHTML = '<p style="color:var(--color-gray-dark)">No hay categorías para mostrar.</p>';
+                    return;
+                }
+
+                categoriasFiltradas.forEach(c => {
+                    const playersInCat = jugadores.filter(j => j.grupo_id == c.id); // grupo_id sigue siendo el FK del jugador
+
+                    // Buscar nombre del profesor
+                    let coachName = "Sin profesor";
+                    if (c.profesor_id && db['mvp soccer'].usuarios) {
+                        const prof = db['mvp soccer'].usuarios.rows.find(u => u.id == c.profesor_id);
+                        if (prof) coachName = prof.nombre;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'category-card';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div class="header-top">
+                                <span class="category-title">${c.nombre}</span>
+                                <span class="category-years">${c.years_target.replace(/,/g, '-')}</span>
+                            </div>
+                            <div class="coach-info">${coachName}</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-btn" onclick="window.app.openRosterModal(${c.id})">Gestionar Jugadores</button>
+                            <button class="card-btn" onclick="window.app.editCategory(${c.id})">Editar Categoría</button>
+                        </div>
+                        <div class="card-body">
+                            ${playersInCat.map(p => `
+                                <div class="player-row">
+                                    <span>${p.nombre} ${p.apellidos}</span>
+                                    <span class="remove-player" onclick="window.app.removePlayer(${p.id}, ${c.id})">Quitar</span>
+                                </div>
+                            `).join('')}
+                            ${playersInCat.length === 0 ? '<small style="color:#aaa; display:block; text-align:center; margin-top:1rem;">Sin jugadores</small>' : ''}
+                        </div>
+                    `;
+                    this.container.appendChild(card);
+                });
+            }
+
+            openCategoryModal() {
+                this.populateCoachSelect();
+                this.yearsContainer.innerHTML = '';
+                for (let i = 2024; i >= 2005; i--) {
+                    const id = `year-${i}`;
+                    this.yearsContainer.innerHTML += `
+                        <input type="checkbox" id="${id}" value="${i}" class="year-checkbox">
+                        <label for="${id}" class="year-label">${i}</label>
+                    `;
+                }
+
+                this.categoryTitle.textContent = 'Nueva Categoría';
+                this.categoryForm.reset();
+                this.categoryModal.classList.add('open');
+            }
+
+            closeCategoryModal() {
+                this.categoryModal.classList.remove('open');
+            }
+
+            editCategory(id) {
+                const db = this.db.getData();
+                const c = db['mvp soccer'].categorias.rows.find(x => x.id === id);
+                if (c) {
+                    this.openCategoryModal();
+                    this.categoryTitle.textContent = 'Editar Categoría';
+                    this.inputCategoryName.value = c.nombre;
+                    this.selectCoach.value = c.profesor_id || '';
+
+                    // Marcar años
+                    const checkboxes = this.yearsContainer.querySelectorAll('input');
+                    const yearsArr = c.years_target.split(',').map(y => y.trim());
+                    checkboxes.forEach(cb => {
+                        if (yearsArr.includes(cb.value)) cb.checked = true;
+                    });
+                }
+            }
+
+            handleSaveCategory(e) {
+                e.preventDefault();
+                const db = this.db.getData();
+                const categorias = db['mvp soccer'].categorias.rows;
+
+                const newId = Date.now();
+                const nombre = this.inputCategoryName.value;
+                const profesor_id = this.selectCoach.value || null; // NUEVO
+
+                const checkedBoxes = this.yearsContainer.querySelectorAll('input[type="checkbox"]:checked');
+                const selectedYears = Array.from(checkedBoxes).map(cb => cb.value);
+                const yearsStr = selectedYears.join(',');
+
+                if (selectedYears.length === 0) { alert('Selecciona al menos un año'); return; }
+
+                categorias.push({ id: newId, nombre: nombre, years_target: yearsStr, profesor_id: profesor_id, estado: 'activo' });
+
+                this.db.saveData(db);
+                this.closeCategoryModal();
+                this.render();
+            }
+
+            openRosterModal(categoryId) {
+                this.currentCategoryId = categoryId;
+                const db = this.db.getData();
+                const c = db['mvp soccer'].categorias.rows.find(x => x.id === categoryId);
+                const allPlayers = db['mvp soccer'].jugadores.rows;
+
+                this.rosterCategoryName.textContent = c.nombre;
+                this.rosterYearsInfo.textContent = c.years_target.replace(/,/g, '-');
+
+                const categoryYears = c.years_target.split(',').map(y => y.trim());
+                const candidates = allPlayers.filter(p => p.estado === 'activo' && categoryYears.includes(p.año));
+
+                this.rosterPlayersList.innerHTML = '';
+                candidates.forEach(p => {
+                    const isChecked = (p.grupo_id == categoryId) ? 'checked' : '';
+                    let info = '';
+                    if (!isChecked && p.grupo_id) {
+                        const otherCat = db['mvp soccer'].categorias.rows.find(ct => ct.id == p.grupo_id);
+                        if (otherCat) info = `<span class="current-category-info">En: ${otherCat.nombre}</span>`;
+                    }
+
+                    const div = document.createElement('div');
+                    div.className = 'player-option';
+                    div.innerHTML = `
+                        <input type="checkbox" value="${p.id}" ${isChecked}>
+                        <span>${p.nombre} ${p.apellidos} (${p.año})</span>
+                        ${info}
+                    `;
+                    div.addEventListener('click', (e) => {
+                        if (e.target.tagName !== 'INPUT') {
+                            div.querySelector('input').checked = !div.querySelector('input').checked;
+                        }
+                    });
+                    this.rosterPlayersList.appendChild(div);
+                });
+
+                this.rosterModal.classList.add('open');
+            }
+
+            saveRosterChanges() {
+                const db = this.db.getData();
+                const jugadores = db['mvp soccer'].jugadores.rows;
+
+                const checkboxes = this.rosterPlayersList.querySelectorAll('input[type="checkbox"]:checked');
+                const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+                // Limpiar asignación actual de esta categoría
+                jugadores.forEach(p => {
+                    if (p.grupo_id == this.currentCategoryId) p.grupo_id = null;
+                });
+
+                // Reasignar
+                jugadores.forEach(p => {
+                    if (selectedIds.includes(p.id)) {
+                        p.grupo_id = this.currentCategoryId;
+                    }
+                });
+
+                this.db.saveData(db);
+                this.closeRosterModal();
+                this.render();
+            }
+
+            closeRosterModal() {
+                this.rosterModal.classList.remove('open');
+            }
+
+            removePlayer(playerId, categoryId) {
+                if (!confirm('¿Quitar jugador?')) return;
+                const db = this.db.getData();
+                const p = db['mvp soccer'].jugadores.rows.find(x => x.id === playerId);
+                if (p) {
+                    p.grupo_id = null;
+                    this.db.saveData(db);
+                    this.render();
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new CategoriasController();
+        });
+    </script>
+</body>
+
+</html>

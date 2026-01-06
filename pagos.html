@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Soccer - Pagos</title>
+
+    <!-- ESTILOS (CSS) -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-whitet: #fff;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-whitet);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Contenido Principal */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        /* HEADER & TABS */
+        header.page-header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 600;
+            color: var(--color-gray-dark);
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--color-text);
+            color: var(--color-text);
+        }
+
+        .tab-btn:hover {
+            color: var(--color-text);
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* TABLA DE CONTROL (Principal) */
+        .control-info {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--color-gray-dark);
+            font-weight: bold;
+        }
+
+        .table-container {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-gray-medium);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--color-whitet);
+            font-weight: 600;
+            color: var(--color-gray-dark);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background-color: #fafafa;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            cursor: pointer;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            border-color: var(--color-text);
+            background-color: var(--color-text);
+            color: var(--color-bg);
+        }
+
+        .btn-pay {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+        }
+
+        /* ESTADOS */
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .status-paid {
+            background-color: #e6fffa;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+
+        .status-pending {
+            background-color: #fffaf0;
+            color: #c05621;
+            border: 1px solid #c05621;
+        }
+
+        .status-late {
+            background-color: #fff5f5;
+            color: #c53030;
+            border: 1px solid #c53030;
+        }
+
+        /* FILTRO DE FECHA EN TABLA DE CONTROL */
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background: var(--color-bg);
+            padding: 1rem;
+            border: 1px solid var(--color-gray-medium);
+        }
+
+        .month-selector select {
+            padding: 0.5rem;
+            border: 1px solid var(--color-gray-medium);
+            background: var(--color-whitet);
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background-color: var(--color-bg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-gray-dark);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--color-gray-medium);
+            background-color: var(--color-whitet);
+            font-family: var(--font-family);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- INICIO: GUARDIÁN UNIVERSAL DE ACCESO (Copiar en TODOS los archivos .html) -->
+    <script>
+        (function () {
+            const SESSION_KEY = 'mini_json_session_data';
+
+            // 1. Obtener sesión actual
+            const sessionData = localStorage.getItem(SESSION_KEY);
+            const session = sessionData ? JSON.parse(sessionData) : null;
+
+            // Si no hay sesión y no estamos en Login -> Echar
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Si no hay sesión y estamos en Login -> No hacer nada más
+            if (!session) return;
+
+            // 2. Definir Mapa de Permisos (Que rol puede ver que archivo)
+            const permissions = {
+                'admin': [
+                    'dashboard.html',
+                    'usuarios.html',
+                    'jugadores.html',
+                    'categorias.html',
+                    'tutores.html',
+                    'pagos.html',
+                    'calendario.html'
+                ],
+                'profesor': [
+                    'dashboard_profesor.html'
+                    // Nota: Calendario completo está bloqueado según tu requerimiento "solo ve su dashboard"
+                ],
+                'jugador': [
+                    'dashboard_jugador.html'
+                ],
+                'tutor': [
+                    'dashboard_tutor.html',
+                ]
+            };
+
+            const role = session.rol.toLowerCase();
+            const allowedPages = permissions[role] || [];
+
+            // 3. Obtener el nombre del archivo actual (ej: "dashboard.html")
+            const currentFilename = window.location.pathname.split('/').pop();
+
+            // 4. Lógica de REDIRECCIÓN (Expulsión de URL prohibida)
+            // Si el archivo actual NO está en la lista permitida del rol
+            if (!allowedPages.includes(currentFilename)) {
+                // Redirigir al primer dashboard permitido para ese rol
+                window.location.href = allowedPages[0] || 'login.html';
+                return;
+            }
+
+            // 5. Lógica de OCULTAR MENÚS (UI)
+            // Buscar todos los enlaces en el sidebar y ocultar los no permitidos
+            // Buscamos cualquier <a> que esté dentro de un <aside>
+            const sidebarLinks = document.querySelectorAll('aside a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Verificar si ese href está en la lista permitida
+                if (href && !allowedPages.includes(href)) {
+                    link.style.display = 'none'; // Ocultar enlace
+                }
+            });
+
+        })();
+    </script>
+    <!-- FIN GUARDIÁN UNIVERSAL -->
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">MVP Soccer</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="usuarios.html">Usuarios</a></li>
+            <li><a href="categorias.html">Categorías</a></li>
+            <li><a href="jugadores.html">Jugadores</a></li>
+            <li><a href="tutores.html">Tutores</a></li>
+            <li><a href="pagos.html" class="active">Pagos</a></li>
+            <li><a href="calendario.html">Calendario</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="sidebar-user-name">Usuario</span>
+            <button id="sidebar-logout-btn" class="btn-logout-sidebar">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <header class="page-header">
+            <h2>Gestión de Pagos</h2>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="window.app.switchTab('control')">Control de Pagos</button>
+                <button class="tab-btn" onclick="window.app.switchTab('history')">Historial</button>
+            </div>
+        </header>
+
+        <!-- VISTA 1: CONTROL DE PAGOS (Cobranza actual) -->
+        <section id="view-control" class="view-section active">
+            <div class="month-selector">
+                <label>Verificando estado para:</label>
+                <select id="control-month">
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
+                </select>
+                <select id="control-year">
+                    <!-- Se llena dinámicamente -->
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jugador</th>
+                            <th>Estado Mensual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="control-table-body">
+                        <!-- JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VISTA 2: HISTORIAL (Tabla de pagos hechos) -->
+        <section id="view-history" class="view-section">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha Pago</th>
+                            <th>Jugador</th>
+                            <th>Mes Pagado</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL REGISTRAR PAGO -->
+    <div id="payment-modal" class="modal-overlay">
+        <div class="modal">
+            <h3>Registrar Pago</h3>
+            <form id="payment-form">
+                <input type="hidden" id="pay-player-id">
+                <input type="hidden" id="pay-player-name">
+
+                <div class="form-group">
+                    <label>Jugador</label>
+                    <input type="text" id="pay-player-display" disabled style="background-color: #eee;">
+                </div>
+
+                <div class="form-group">
+                    <label>Mes a Pagar</label>
+                    <select id="pay-month">
+                        <option value="0">Enero</option>
+                        <option value="1">Febrero</option>
+                        <option value="2">Marzo</option>
+                        <option value="3">Abril</option>
+                        <option value="4">Mayo</option>
+                        <option value="5">Junio</option>
+                        <option value="6">Julio</option>
+                        <option value="7">Agosto</option>
+                        <option value="8">Septiembre</option>
+                        <option value="9">Octubre</option>
+                        <option value="10">Noviembre</option>
+                        <option value="11">Diciembre</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Año</label>
+                    <select id="pay-year"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Monto ($)</label>
+                    <input type="number" id="pay-amount" value="150000" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="btn-cancel-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-save">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGICA JS -->
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        // --- SERVICIOS ---
+        class AuthService {
+            static getSession() {
+                const data = localStorage.getItem(SESSION_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            static logout() {
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        }
+
+        class DBService {
+            getData() {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            saveData(data) {
+                localStorage.setItem(DB_KEY, JSON.stringify(data));
+            }
+        }
+
+        // --- CONTROLADOR FINANCIERO (NUEVO) ---
+        class FinanceController {
+            constructor() {
+                this.db = new DBService();
+                this.user = AuthService.getSession();
+                this.today = new Date();
+
+                // Elementos DOM
+                this.controlBody = document.getElementById('control-table-body');
+                this.historyBody = document.getElementById('history-table-body');
+                this.modal = document.getElementById('payment-modal');
+                this.form = document.getElementById('payment-form');
+
+                // Selectores de Fecha en Modal
+                this.payMonth = document.getElementById('pay-month');
+                this.payYear = document.getElementById('pay-year');
+
+                // Selectores de Fecha en Filtro
+                this.controlMonth = document.getElementById('control-month');
+                this.controlYear = document.getElementById('control-year');
+
+                this.init();
+            }
+
+            init() {
+                if (!this.user) { window.location.href = 'login.html'; return; }
+
+                // Inicializar DB si es necesario (Migración/Creación)
+                this.ensureSchema();
+
+                // Eventos
+                document.getElementById('sidebar-logout-btn').addEventListener('click', () => AuthService.logout());
+                document.getElementById('btn-cancel-modal').addEventListener('click', () => this.closeModal());
+                this.form.addEventListener('submit', (e) => this.handlePayment(e));
+
+                this.controlMonth.addEventListener('change', () => this.renderControl());
+                this.controlYear.addEventListener('change', () => this.renderControl());
+
+                // Cargar años en selects (Este año + el siguiente)
+                const currentYear = this.today.getFullYear();
+                const years = [currentYear, currentYear + 1];
+
+                [this.payYear, this.controlYear].forEach(select => {
+                    select.innerHTML = '';
+                    years.forEach(y => {
+                        const opt = document.createElement('option');
+                        opt.value = y;
+                        opt.textContent = y;
+                        select.appendChild(opt);
+                    });
+                });
+
+                // Seleccionar mes/año actual por defecto en los filtros
+                this.controlMonth.value = this.today.getMonth();
+                this.controlYear.value = currentYear;
+                // En el modal, por defecto poner el mes actual también
+                this.payMonth.value = this.today.getMonth();
+                this.payYear.value = currentYear;
+
+                this.renderControl();
+                this.renderHistory();
+                document.getElementById('sidebar-user-name').textContent = this.user.nombre;
+            }
+
+            ensureSchema() {
+                const db = this.db.getData();
+                if (!db || !db['mvp soccer']) return;
+
+                // Si existe la vieja tabla 'pagos', la borramos para no causar confusión
+                if (db['mvp soccer'].pagos) {
+                    delete db['mvp soccer'].pagos;
+                    this.db.saveData(db);
+                    console.log("Tabla antigua 'pagos' eliminada. Usando nueva estructura.");
+                }
+
+                // Crear tabla 'pagos' si no existe
+                if (!db['mvp soccer'].pagos) {
+                    db['mvp soccer'].pagos = {
+                        "columns": ["id", "id_jugador", "fecha_pago", "mes", "anio", "monto"],
+                        "rows": []
+                    };
+                    this.db.saveData(db);
+                }
+            }
+
+            switchTab(tabName) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+
+                if (tabName === 'control') {
+                    document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                    document.getElementById('view-control').classList.add('active');
+                    this.renderControl();
+                } else {
+                    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                    document.getElementById('view-history').classList.add('active');
+                    this.renderHistory();
+                }
+            }
+
+            // --- LÓGICA DE CONTROL (Cobranza) ---
+
+            getPaymentStatus(playerId, month, year) {
+                const db = this.db.getData();
+                // Buscar si existe un pago
+                const payment = db['mvp soccer'].pagos.rows.find(p =>
+                    p.id_jugador == playerId &&
+                    parseInt(p.mes) === month &&
+                    parseInt(p.anio) === year
+                );
+
+                if (payment) {
+                    return { paid: true, status: 'Pagado', class: 'status-paid' };
+                }
+
+                // Si no hay pago, calcular si es moroso o pendiente
+                const currentMonth = this.today.getMonth();
+                const currentYear = this.today.getFullYear();
+                const currentDay = this.today.getDate();
+
+                // Si el mes/año que estamos mirando es FUTURO
+                if (year > currentYear || (year === currentYear && month > currentMonth)) {
+                    return { paid: false, status: 'Futuro', class: 'status-pending' };
+                }
+
+                // Si es el mes actual o pasado
+                // Regla: Día 5 es límite
+                if (year === currentYear && month === currentMonth) {
+                    if (currentDay > 5) {
+                        return { paid: false, status: 'MOROSO', class: 'status-late' };
+                    } else {
+                        return { paid: false, status: 'Pendiente', class: 'status-pending' };
+                    }
+                }
+
+                // Es un mes pasado sin pago -> Definitivamente Moroso
+                return { paid: false, status: 'Moroso', class: 'status-late' };
+            }
+
+            renderControl() {
+                const db = this.db.getData();
+                const players = (db['mvp soccer'].jugadores && db['mvp soccer'].jugadores.rows) ? db['mvp soccer'].jugadores.rows : [];
+                const activePlayers = players.filter(p => p.estado === 'activo');
+
+                const targetMonth = parseInt(this.controlMonth.value);
+                const targetYear = parseInt(this.controlYear.value);
+
+                this.controlBody.innerHTML = '';
+
+                activePlayers.forEach(p => {
+                    const statusObj = this.getPaymentStatus(p.id, targetMonth, targetYear);
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div style="font-weight:bold margin-bottom: 3px;">${p.nombre} ${p.apellidos}</div>
+                            <div style="font-size:0.8rem; color:#888">Año: ${p.año}</div>
+                        </td>
+                        <td><span class="status-badge ${statusObj.class}">${statusObj.status}</span></td>
+                        <td>
+                        <div style="display:flex; gap:0.5rem;">
+                            ${!statusObj.paid ?
+                            `<button class="action-btn btn-pay" onclick="window.app.openPayModal(${p.id}, '${p.nombre} ${p.apellidos}')">Registrar Pago</button>`
+                            : '<span style="color:#2e7d32; font-size:0.8rem;">Pagado</span>'
+                        }
+                            
+                            <!-- NUEVO BOTÓN DE NOTIFICACIÓN -->
+                            <button class="action-btn" onclick="window.app.notifyPlayer(${p.id})" title="Enviar Recordatorio/Mora">
+                                🔔
+                            </button>
+                        </div>
+                    </td>
+                    `;
+                    this.controlBody.appendChild(tr);
+                });
+            }
+
+            // NUEVO MÉTODO: ENVIAR NOTIFICACIÓN
+            notifyPlayer(playerId) {
+                const db = this.db.getData();
+
+                // 1. Buscar el jugador
+                const player = db['mvp soccer'].jugadores.rows.find(p => p.id == playerId);
+                if (!player) { alert('Jugador no encontrado'); return; }
+
+                // 2. Buscar al tutor vinculado
+                const tutor = (db['mvp soccer'].tutores && db['mvp soccer'].tutores.rows)
+                    ? db['mvp soccer'].tutores.rows.find(t => t.id_jugador == playerId)
+                    : null;
+
+                // Determinar tipo de notificación basado en el estado del jugador actual
+                const statusObj = this.getPaymentStatus(player, this.today.getMonth(), this.today.getFullYear());
+                let motivo = 'Recordatorio de Pago';
+                let mensaje = '';
+
+                if (statusObj.status === 'MOROSO') {
+                    motivo = 'Mora Vencida';
+                }
+
+                // Validar si hay contacto
+                if (!tutor) {
+                    alert(`No hay tutor vinculado a ${player.nombre} para enviar notificación.`);
+                    return;
+                }
+
+                // Simulación de envío
+                const contacto = tutor.telefono || tutor.email;
+                const tipoEnvio = tutor.telefono ? 'SMS' : 'EMAIL'; // Prioridad SMS
+
+                // Confirmación al usuario
+                const confirmar = confirm(`¿Enviar ${tipoEnvio} de "${motivo}" al tutor?\n\nDestino: ${contacto}\nTutor: ${tutor.nombre}`);
+
+                if (confirmar) {
+                    // 3. Registrar en la base de datos (Historial)
+                    const newNotif = {
+                        id: Date.now(),
+                        id_jugador: playerId,
+                        id_tutor: tutor.id,
+                        tipo: tipoEnvio,
+                        motivo: motivo,
+                        fecha_envio: `${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+                        contacto: contacto
+                    };
+
+                    // Guardar
+                    if (!db['mvp soccer'].notificaciones) db['mvp soccer'].notificaciones = { rows: [] };
+                    db['mvp soccer'].notificaciones.rows.push(newNotif);
+                    this.db.saveData(db);
+
+                    alert(`✅ Notificación enviada con éxito a: ${contacto}`);
+                }
+            }
+
+            // --- LÓGICA DE HISTORIAL ---
+
+            renderHistory() {
+                const db = this.db.getData();
+                const rows = db['mvp soccer'].pagos.rows || [];
+                const players = (db['mvp soccer'].jugadores && db['mvp soccer'].jugadores.rows) ? db['mvp soccer'].jugadores.rows : [];
+
+                this.historyBody.innerHTML = '';
+
+                // Ordenar por fecha (más reciente primero)
+                rows.sort((a, b) => new Date(b.fecha_pago) - new Date(a.fecha_pago));
+
+                if (rows.length === 0) {
+                    this.historyBody.innerHTML = '<tr><td colspan="4" style="text-align:center">No hay pagos registrados</td></tr>';
+                    return;
+                }
+
+                const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' });
+
+                rows.forEach(r => {
+                    const player = players.find(p => p.id == r.id_jugador);
+                    const playerName = player ? `${player.nombre} ${player.apellidos}` : 'Jugador eliminado';
+                    const monthName = monthNames[parseInt(r.mes)];
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${r.fecha_pago}</td>
+                        <td>${playerName}</td>
+                        <td>${monthName} ${r.anio}</td>
+                        <td>${formatter.format(r.monto)}</td>
+                    `;
+                    this.historyBody.appendChild(tr);
+                });
+            }
+
+            // --- MANEJO DE MODAL ---
+
+            openPayModal(playerId, playerName) {
+                document.getElementById('pay-player-id').value = playerId;
+                document.getElementById('pay-player-name').value = playerName;
+                document.getElementById('pay-player-display').value = playerName;
+                this.modal.classList.add('open');
+            }
+
+            closeModal() {
+                this.modal.classList.remove('open');
+            }
+
+            handlePayment(e) {
+                e.preventDefault();
+                const db = this.db.getData();
+
+                const id_jugador = document.getElementById('pay-player-id').value;
+                const mes = document.getElementById('pay-month').value;
+                const anio = document.getElementById('pay-year').value;
+                const monto = document.getElementById('pay-amount').value;
+
+                // Fecha Hoy
+                const d = new Date();
+                const fecha_pago = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+
+                // Verificar si ya existe pago para este periodo
+                const exists = db['mvp soccer'].pagos.rows.find(p =>
+                    p.id_jugador == id_jugador &&
+                    p.mes == mes &&
+                    p.anio == anio
+                );
+
+                if (exists) {
+                    alert('Ya existe un pago registrado para este mes y año para este jugador.');
+                    return;
+                }
+
+                const newPayment = {
+                    id: Date.now(),
+                    id_jugador: id_jugador,
+                    fecha_pago: fecha_pago,
+                    mes: mes,
+                    anio: anio,
+                    monto: monto
+                };
+
+                db['mvp soccer'].pagos.rows.push(newPayment);
+                this.db.saveData(db);
+
+                alert('Pago registrado exitosamente');
+                this.closeModal();
+                this.renderControl();
+                this.renderHistory();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new FinanceController();
+        });
+    </script>
+</body>
+
+</html>

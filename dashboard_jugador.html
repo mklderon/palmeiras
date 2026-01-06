@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jugador - Dashboard</title>
+
+    <!-- ESTILOS -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-gray-light: #f4f4f4;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --color-blue: #2b6cb0;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-gray-light);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Main */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .subtitle {
+            color: var(--color-gray-dark);
+            font-size: 1.2rem;
+        }
+
+        /* --- TARJETA PERFIL --- */
+        .profile-summary {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: var(--color-bg);
+            padding: 1.5rem;
+            border: 1px solid var(--color-gray-medium);
+            margin-bottom: 2rem;
+        }
+
+        .avatar-lg {
+            width: 80px;
+            height: 80px;
+            background: #000;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .profile-text h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .profile-text .cat-badge {
+            display: inline-block;
+            background: var(--color-gray-light);
+            padding: 0.3rem 0.6rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--color-gray-medium);
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn-view-full {
+            margin-left: auto;
+            text-decoration: none;
+            color: var(--color-gray-dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.5rem 1rem;
+            transition: 0.2s;
+        }
+
+        .btn-view-full:hover {
+            border-color: var(--color-text);
+            color: var(--color-text);
+        }
+
+        /* --- ALERTA FINANCIERA --- */
+        .payment-alert {
+            background-color: #fff5f5;
+            border-left: 4px solid #c53030;
+            color: #c53030;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: none;
+            /* Oculto por defecto */
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .payment-alert.active {
+            display: flex;
+        }
+
+        .payment-alert-icon {
+            font-size: 1.5rem;
+        }
+
+        /* --- TARJETA PRÓXIMO EVENTO (HERO) --- */
+        .hero-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--color-gray-dark);
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .next-event-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            padding: 0;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            min-height: 140px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .next-event-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .event-date-box {
+            background: var(--color-gray-light);
+            border-right: 1px solid var(--color-gray-medium);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .event-date-box .day {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text);
+            line-height: 1;
+        }
+
+        .event-date-box .time {
+            font-size: 0.9rem;
+            color: var(--color-gray-dark);
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .event-date-box .relative {
+            font-size: 0.75rem;
+            color: var(--color-gray-dark);
+            margin-top: 0.2rem;
+        }
+
+        .event-details-box {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .event-details-box::before {
+            content: '';
+            position: absolute;
+            left: -1px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--color-text);
+        }
+
+        .next-event-card.type-partido .event-details-box::before {
+            background: var(--color-blue);
+        }
+
+        .event-type-pill {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .type-entrenamiento {
+            background: var(--color-text);
+            color: var(--color-bg);
+        }
+
+        .type-partido {
+            background: var(--color-blue);
+            color: white;
+        }
+
+        .event-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            padding-right: 4rem;
+        }
+
+        .event-subtitle {
+            font-size: 1.1rem;
+            color: var(--color-gray-dark);
+        }
+
+        .event-meta {
+            font-size: 0.9rem;
+            color: var(--color-gray-dark);
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .rival-text {
+            color: var(--color-blue);
+            font-weight: bold;
+        }
+
+        /* --- LISTA PRÓXIMOS (COMPACTA) --- */
+        .upcoming-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .upcoming-item {
+            background: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upcoming-item .date {
+            font-weight: bold;
+            margin-right: 1rem;
+            color: var(--color-gray-dark);
+            font-size: 0.9rem;
+        }
+
+        .upcoming-item .info {
+            flex: 1;
+        }
+
+        .upcoming-item .info div {
+            margin-bottom: 0.1rem;
+        }
+
+        .upcoming-item .pill-mini {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            color: white;
+            border-radius: 2px;
+            text-transform: uppercase;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">MVP Soccer</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard_jugador.html" class="active">Mi Dashboard</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="user-name">Usuario</span>
+            <button id="btn-logout" class="btn-logout-sidebar">Salir</button>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <main class="main-content">
+        <header>
+            <div>
+                <h1 id="greeting">Hola, Jugador</h1>
+                <div class="subtitle">Aquí tienes tu agenda de actividades.</div>
+            </div>
+        </header>
+
+        <!-- Alerta Deuda -->
+        <!-- <div id="payment-alert" class="payment-alert">
+            <div class="payment-alert-icon">⚠️</div>
+            <div>
+                <strong>Atención:</strong> Tienes pagos pendientes. Por favor contacta a tu tutor para continuar activo.
+            </div>
+        </div> -->
+
+        <!-- Resumen Perfil -->
+        <div class="profile-summary">
+            <div class="avatar-lg" id="avatar">JZ</div>
+            <div class="profile-text">
+                <h2 id="player-name">Juan Zuñiga</h2>
+                <span class="cat-badge" id="player-cat">Sub-17 A</span>
+            </div>
+            <a href="#" id="btn-profile-full" class="btn-view-full">Ver Perfil Completo</a>
+        </div>
+
+        <!-- Tarjeta Próximo Evento (Hero) -->
+        <div class="hero-section">
+            <div class="section-label">Próxima Actividad</div>
+            <div id="next-event-container">
+                <!-- Se inyecta con JS -->
+            </div>
+        </div>
+
+        <!-- Lista Próximos -->
+        <div class="hero-section" style="margin-bottom: 0;">
+            <div class="section-label">Próximos Eventos</div>
+            <div id="upcoming-list" class="upcoming-list">
+                <!-- Se inyecta con JS -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        // --- CLASES DE AYUDA ---
+        class AuthService {
+            static getSession() {
+                const data = localStorage.getItem(SESSION_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            static logout() {
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        }
+
+        class DBService {
+            getData() {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+        }
+
+        // --- CONTROLADOR DASHBOARD JUGADOR ---
+        class PlayerDashboard {
+            constructor() {
+                this.db = new DBService();
+                this.session = AuthService.getSession();
+
+                this.init();
+            }
+
+            init() {
+                if (!this.session) { window.location.href = 'login.html'; return; }
+
+                document.getElementById('user-name').textContent = this.session.nombre;
+                document.getElementById('btn-logout').addEventListener('click', () => AuthService.logout());
+
+                this.loadPlayerData();
+            }
+
+            loadPlayerData() {
+                const db = this.db.getData();
+                if (!db) return;
+
+                // Buscar jugador por email de sesión
+                const player = db['mvp soccer'].jugadores.rows.find(p => p.email === this.session.email);
+
+                if (player) {
+                    // Actualizar UI Perfil
+                    const initials = (player.nombre[0] + player.apellidos[0]).toUpperCase();
+                    document.getElementById('avatar').textContent = initials;
+                    document.getElementById('player-name').textContent = `${player.nombre} ${player.apellidos}`;
+                    document.getElementById('greeting').textContent = `Hola, ${player.nombre}`;
+                    document.getElementById('btn-profile-full').href = `perfil-jugador.html?id=${player.id}`;
+
+                    // Categoría
+                    if (player.grupo_id) {
+                        const cat = db['mvp soccer'].categorias.rows.find(c => c.id == player.grupo_id);
+                        if (cat) document.getElementById('player-cat').textContent = cat.nombre;
+                    } else {
+                        document.getElementById('player-cat').textContent = "Sin categoría asignada";
+                    }
+
+                    // Verificar Pagos (Alerta Morosidad)
+                    // this.checkPaymentStatus(db, player);
+
+                    // Renderizar Eventos
+                    this.renderEvents(db, player.grupo_id);
+                } else {
+                    document.querySelector('.profile-summary').style.display = 'none';
+                    document.getElementById('next-event-container').innerHTML = '<p style="padding:2rem; text-align:center; color:#888;">Perfil de jugador no encontrado o no tienes rol de jugador asignado.</p>';
+                }
+            }
+
+            // checkPaymentStatus(db, player) {
+            //     const alertBox = document.getElementById('payment-alert');
+            //     const today = new Date();
+            //     const currentMonth = today.getMonth();
+            //     const currentYear = today.getFullYear();
+            //     const isLate = today.getDate() > 5;
+
+            //     // Buscar pago actual
+            //     const hasPayment = db['mvp soccer'].pagos.rows.some(p => 
+            //         p.id_jugador == player.id && 
+            //         parseInt(p.mes) === currentMonth && 
+            //         parseInt(p.anio) === currentYear
+            //     );
+
+            //     if (!hasPayment && isLate) {
+            //         alertBox.classList.add('active');
+            //     } else {
+            //         alertBox.classList.remove('active');
+            //     }
+            // }
+
+            getRelativeTimeString(dateObj, timeStr) {
+                const now = new Date();
+                const eventDate = new Date(dateObj);
+
+                // Ajustar hora exacta del evento
+                const [h, m] = timeStr.split(':');
+                eventDate.setHours(h, m, 0, 0);
+
+                const diffMs = eventDate - now;
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+                // Formato Fecha
+                const options = { weekday: 'long', day: 'numeric', month: 'short' };
+                const dateStr = eventDate.toLocaleDateString('es-ES', options);
+
+                if (diffDays < 0) return { dateStr, relative: "Ha finalizado", isPast: true };
+                if (diffDays === 0 && diffHours < 1) return { dateStr, relative: "En menos de 1 hora", isPast: false };
+                if (diffDays === 0) return { dateStr, relative: `Hoy a las ${timeStr}`, isPast: false };
+                if (diffDays === 1) return { dateStr, relative: `Mañana a las ${timeStr}`, isPast: false };
+
+                return { dateStr, relative: `En ${diffDays} días`, isPast: false };
+            }
+
+            renderEvents(db, categoryId) {
+                const allEvents = db['mvp soccer'].calendario.rows || [];
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+
+                // Filtrar eventos futuros y de mi categoría (entrenamientos o partidos)
+                const events = allEvents.filter(e =>
+                    e.estado === 'activo' &&
+                    e.fecha >= todayStr &&
+                    parseInt(e.id_categoria) === categoryId
+                );
+
+                // Ordenar
+                events.sort((a, b) => new Date(a.fecha + 'T' + a.hora) - new Date(b.fecha + 'T' + b.hora));
+
+                const nextContainer = document.getElementById('next-event-container');
+                const listContainer = document.getElementById('upcoming-list');
+
+                if (events.length === 0) {
+                    nextContainer.innerHTML = '<div style="text-align:center; padding:2rem; border:1px solid #eee;">No tienes actividades próximas.</div>';
+                    listContainer.innerHTML = '';
+                    return;
+                }
+
+                // 1. Renderizar HERO (Primer evento)
+                const nextEvent = events[0];
+                const timeData = this.getRelativeTimeString(nextEvent.fecha, nextEvent.hora);
+
+                const typeClass = nextEvent.tipo === 'partido' ? 'type-partido' : 'type-entrenamiento';
+                const cardClass = nextEvent.tipo === 'partido' ? 'type-partido' : 'type-entrenamiento'; // Para el borde
+                const title = nextEvent.tipo === 'partido' ? `vs ${nextEvent.rival}` : `Entrenamiento - ${nextEvent.categoria_nombre}`;
+
+                // Detalles adicionales
+                let detailsHtml = '';
+                if (nextEvent.tipo === 'entrenamiento') {
+                    detailsHtml = `<div class="event-meta"><div class="meta-item">⏱ Duración: ${nextEvent.duracion}</div></div>`;
+                } else {
+                    detailsHtml = `<div class="event-meta"><div class="meta-item">📍 ${nextEvent.lugar}</div><div class="meta-item">🏆 ${nextEvent.tipo_partido}</div></div>`;
+                }
+
+                nextContainer.innerHTML = `
+                    <div class="next-event-card ${cardClass}">
+                        <div class="event-date-box">
+                            <span class="day">${new Date(nextEvent.fecha).getDate()}</span>
+                            <span class="time">${new Date(nextEvent.fecha).toLocaleDateString('es-ES', { month: 'short' }).toUpperCase()}</span>
+                        </div>
+                        <div class="event-details-box">
+                            <span class="event-type-pill ${typeClass}">${nextEvent.tipo}</span>
+                            <div class="event-title">${title}</div>
+                            <div class="event-subtitle">${timeData.relative}</div>
+                            ${detailsHtml}
+                        </div>
+                    </div>
+                `;
+
+                // 2. Renderizar Lista (Siguientes 3)
+                const restEvents = events.slice(1, 4);
+                listContainer.innerHTML = '';
+
+                restEvents.forEach(e => {
+                    const tData = this.getRelativeTimeString(e.fecha, e.hora);
+                    const isMatch = e.tipo === 'partido';
+                    const pillColor = isMatch ? 'var(--color-blue)' : 'var(--color-text)';
+                    const tTitle = isMatch ? `vs ${e.rival}` : e.categoria_nombre;
+
+                    listContainer.innerHTML += `
+                        <div class="upcoming-item">
+                            <div class="date">
+                                <div>${tData.dateStr}</div>
+                                <div style="font-size:0.75rem;">${e.hora}</div>
+                            </div>
+                            <div class="info">
+                                <div style="font-weight:bold;">${tTitle}</div>
+                                <div style="font-size:0.85rem; color:#888;">${tData.relative}</div>
+                            </div>
+                            <div class="pill-mini" style="background-color: ${pillColor}">${e.tipo}</div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // Iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            new PlayerDashboard();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profesor - Dashboard</title>
+
+    <!-- ESTILOS -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-gray-light: #f4f4f4;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --color-blue: #2b6cb0;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-gray-light);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Main */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        /* HEADER ACTIONS */
+        .header-actions a {
+            font-size: 0.8rem;
+            color: var(--color-gray-dark);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* BOTÓN ARCHIVAR ESTILIZADO */
+        .btn-archive-style {
+            display: inline-block;
+            font-size: 0.8rem;
+            color: var(--color-gray-dark);
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-archive-style:hover {
+            background-color: var(--color-gray-light);
+            border-color: var(--color-gray-dark);
+            color: var(--color-text);
+        }
+
+        /* SECCIÓN CATEGORÍAS (GRID) */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem 0;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 0.5rem;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .category-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 150px;
+            transition: transform 0.2s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .category-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-card p {
+            font-size: 0.9rem;
+            color: var(--color-gray-dark);
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-view-players {
+            align-self: flex-start;
+            background-color: var(--color-gray-light);
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn-view-players:hover {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border-color: var(--color-text);
+        }
+
+        /* LISTA EVENTOS (DISCRIMINADOS) */
+        .event-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .event-item {
+            background: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-date {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            min-width: 100px;
+        }
+
+        .event-details div {
+            font-size: 0.9rem;
+            color: var(--color-gray-dark);
+        }
+
+        /* PASTILLAS */
+        .event-pill {
+            padding: 0.4rem 0.8rem;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            min-width: 120px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .event-pill.type-entrenamiento {
+            background-color: var(--color-text);
+        }
+
+        .event-pill.type-partido {
+            background-color: var(--color-blue);
+        }
+
+        /* MODAL LISTA JUGADORES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background-color: var(--color-bg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal h3 {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 0.5rem;
+        }
+
+        .player-list-scroll {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 5px;
+            margin-bottom: 1.5rem;
+        }
+
+        .list-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .btn-close-modal:hover {
+            background: var(--color-gray-light);
+        }
+
+        /* Logout */
+        .btn-logout {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        .btn-logout:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- INICIO: GUARDIÁN UNIVERSAL DE ACCESO (Copiar en TODOS los archivos .html) -->
+    <script>
+        (function () {
+            const SESSION_KEY = 'mini_json_session_data';
+
+            // 1. Obtener sesión actual
+            const sessionData = localStorage.getItem(SESSION_KEY);
+            const session = sessionData ? JSON.parse(sessionData) : null;
+
+            // Si no hay sesión y no estamos en Login -> Echar
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Si no hay sesión y estamos en Login -> No hacer nada más
+            if (!session) return;
+
+            // 2. Definir Mapa de Permisos (Que rol puede ver que archivo)
+            const permissions = {
+                'admin': [
+                    'dashboard.html',
+                    'usuarios.html',
+                    'jugadores.html',
+                    'categorias.html',
+                    'tutores.html',
+                    'pagos.html',
+                    'calendario.html'
+                ],
+                'profesor': [
+                    'dashboard_profesor.html'
+                    // Nota: Calendario completo está bloqueado según tu requerimiento "solo ve su dashboard"
+                ],
+                'jugador': [
+                    'dashboard_jugador.html'
+                ],
+                'tutor': [
+                    'dashboard_tutor.html'
+                ]
+            };
+
+            const role = session.rol.toLowerCase();
+            const allowedPages = permissions[role] || [];
+
+            // 3. Obtener el nombre del archivo actual (ej: "dashboard.html")
+            const currentFilename = window.location.pathname.split('/').pop();
+
+            // 4. Lógica de REDIRECCIÓN (Expulsión de URL prohibida)
+            // Si el archivo actual NO está en la lista permitida del rol
+            if (!allowedPages.includes(currentFilename)) {
+                // Redirigir al primer dashboard permitido para ese rol
+                window.location.href = allowedPages[0] || 'login.html';
+                return;
+            }
+
+            // 5. Lógica de OCULTAR MENÚS (UI)
+            // Buscar todos los enlaces en el sidebar y ocultar los no permitidos
+            // Buscamos cualquier <a> que esté dentro de un <aside>
+            const sidebarLinks = document.querySelectorAll('aside a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Verificar si ese href está en la lista permitida
+                if (href && !allowedPages.includes(href)) {
+                    link.style.display = 'none'; // Ocultar enlace
+                }
+            });
+
+        })();
+    </script>
+    <!-- FIN GUARDIÁN UNIVERSAL -->
+
+    <aside class="sidebar">
+        <div class="sidebar-header">Profesor</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard_profesor.html" class="active">Mi Dashboard</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="user-name">Usuario</span>
+            <button id="btn-logout" class="btn-logout">Salir</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <div>
+                <h2>Bienvenido, <span id="header-name"></span></h2>
+                <p style="color: var(--color-gray-dark)">Aquí tienes el resumen de tus categorías y próximos eventos.
+                </p>
+            </div>
+        </header>
+
+        <!-- CATEGORÍAS A CARGO -->
+        <div class="section-title">Mis Categorías</div>
+        <div id="categories-container" class="categories-grid"></div>
+
+        <!-- EVENTOS -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 2rem;">
+            <div class="section-title" style="margin-bottom: 0;">Próximos Eventos</div>
+            <!-- Aquí agregamos la clase btn-archive-style -->
+            <a id="btn-archive" class="btn-archive-style" style="display:none; margin-bottom: 5px;">Archivar Pasados</a>
+        </div>
+
+        <div id="events-container" class="event-list"></div>
+    </main>
+
+    <!-- MODAL LISTA JUGADORES -->
+    <div id="players-modal" class="modal-overlay">
+        <div class="modal">
+            <h3 id="modal-cat-name">Jugadores</h3>
+            <div id="players-list" class="player-list-scroll">
+                <!-- Lista generada -->
+            </div>
+            <button id="btn-close-modal" class="btn-close-modal">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        const session = JSON.parse(localStorage.getItem(SESSION_KEY));
+        if (!session) window.location.href = 'login.html';
+
+        document.getElementById('user-name').textContent = session.nombre;
+        document.getElementById('header-name').textContent = session.nombre;
+        document.getElementById('btn-logout').addEventListener('click', () => { localStorage.removeItem(SESSION_KEY); window.location.href = 'login.html'; });
+
+        const db = JSON.parse(localStorage.getItem(DB_KEY));
+        const myCats = db['mvp soccer'].categorias.rows.filter(c => c.profesor_id == session.id);
+        const myCatIds = myCats.map(c => c.id);
+
+        // --- RENDERIZADO DE CATEGORÍAS ---
+        const catsContainer = document.getElementById('categories-container');
+
+        if (myCats.length === 0) {
+            catsContainer.innerHTML = '<p style="grid-column: 1/-1;">No tienes categorías asignadas.</p>';
+        } else {
+            myCats.forEach(c => {
+                catsContainer.innerHTML += `
+                    <div class="category-card">
+                        <div>
+                            <h3>${c.nombre}</h3>
+                            <p>Años: ${c.years_target.replace(/,/g, '-')}</p>
+                        </div>
+                        <button class="btn-view-players" onclick="window.app.openPlayersModal(${c.id}, '${c.nombre}')">Ver Jugadores</button>
+                    </div>`;
+            });
+        }
+
+        // --- RENDERIZADO DE EVENTOS (SOLO FUTUROS) ---
+        const eventsContainer = document.getElementById('events-container');
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // Filtro: Solo activos y Fecha >= Hoy
+        const upcomingEvents = db['mvp soccer'].calendario.rows.filter(e =>
+            e.estado === 'activo' &&
+            e.fecha >= todayStr &&
+            myCatIds.includes(parseInt(e.id_categoria))
+        );
+
+        upcomingEvents.sort((a, b) => new Date(a.fecha + 'T' + a.hora) - new Date(b.fecha + 'T' + b.hora));
+
+        if (upcomingEvents.length === 0) {
+            eventsContainer.innerHTML = '<p>No tienes eventos próximos programados.</p>';
+        } else {
+            upcomingEvents.slice(0, 10).forEach(e => {
+                const isTraining = e.tipo === 'entrenamiento';
+                const colorClass = isTraining ? 'type-entrenamiento' : 'type-partido';
+                const typeLabel = isTraining ? 'ENTRENO' : 'PARTIDO';
+
+                const d = new Date(e.fecha + 'T' + e.hora);
+                const dateStr = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+                const timeStr = e.hora;
+                const detailSub = isTraining ? e.duracion : `vs ${e.rival}`;
+
+                eventsContainer.innerHTML += `
+                    <div class="event-item">
+                        <div class="event-date">${dateStr} <br><span style="font-size:1rem; color: white; font-weight:normal">${timeStr}</span></div>
+                        <div class="event-details">
+                            <div class="event-pill ${colorClass}" style="display:inline-block; color: white; margin-bottom:0.5rem;">${typeLabel}</div>
+                            <div><strong>${e.categoria_nombre}</strong></div>
+                            <div>${detailSub}</div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // --- FUNCIONES DE LA APP ---
+        const app = {
+            // 1. Abrir Modal con Jugadores de una Categoría
+            openPlayersModal(catId, catName) {
+                const playersList = document.getElementById('players-list');
+                const modal = document.getElementById('players-modal');
+                document.getElementById('modal-cat-name').textContent = catName;
+
+                // Buscar jugadores de esta categoría
+                const catPlayers = db['mvp soccer'].jugadores.rows.filter(p => p.grupo_id == catId && p.estado === 'activo');
+
+                playersList.innerHTML = '';
+                if (catPlayers.length === 0) {
+                    playersList.innerHTML = '<p style="text-align:center; color:#888;">No hay jugadores activos en esta categoría.</p>';
+                } else {
+                    catPlayers.forEach(p => {
+                        playersList.innerHTML += `
+                            <div class="list-item">
+                                <span>${p.nombre} ${p.apellidos}</span>
+                                <span style="color:#888; font-size:0.8rem;">${p.año}</span>
+                            </div>`;
+                    });
+                }
+
+                modal.classList.add('open');
+            },
+
+            closePlayersModal() {
+                document.getElementById('players-modal').classList.remove('open');
+            },
+
+            // 2. Archivar eventos pasados (Limpieza de DB)
+            archivePastEvents() {
+                if (!confirm('¿Cambiar el estado de los eventos pasados a "Finalizado"?')) return;
+
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+
+                // Buscar eventos pasados que aún están activos
+                const events = db['mvp soccer'].calendario.rows;
+                let changedCount = 0;
+
+                events.forEach(e => {
+                    // Si la fecha del evento es menor a hoy Y el estado es activo
+                    if (e.fecha < todayStr && e.estado === 'activo') {
+                        e.estado = 'finalizado';
+                        changedCount++;
+                    }
+                });
+
+                if (changedCount > 0) {
+                    localStorage.setItem(DB_KEY, JSON.stringify(db));
+                    alert(`${changedCount} eventos archivados.`);
+                    location.reload(); // Recargar para ver el efecto
+                } else {
+                    alert('No hay eventos pasados para archivar.');
+                }
+            }
+        };
+
+        // Asignar botón archivar si hay eventos viejos ocultos
+        const oldEventsCount = db['mvp soccer'].calendario.rows.filter(e => e.estado === 'activo' && e.fecha < todayStr).length;
+        if (oldEventsCount > 0) {
+            document.getElementById('btn-archive').style.display = 'block';
+            document.getElementById('btn-archive').addEventListener('click', () => app.archivePastEvents());
+        }
+
+        document.getElementById('btn-close-modal').addEventListener('click', () => app.closePlayersModal());
+        window.app = app;
+    </script>
+</body>
+
+</html>

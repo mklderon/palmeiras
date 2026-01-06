@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Soccer - Perfil Jugador</title>
+
+    <!-- ESTILOS (CSS) - Base idéntica a las demás páginas -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-whitet: #fff;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-whitet);
+            /* Fondo general gris claro */
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Contenido Principal */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header de la página */
+        header.page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        /* DISEÑO ESPECÍFICO DEL PERFIL (Estilo Captura) */
+        .profile-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Centrado verticalmente básico */
+            justify-content: flex-start;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .profile-card {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        /* Avatar Circular */
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            border: 4px solid var(--color-whitet);
+        }
+
+        /* Datos del Jugador */
+        .player-data {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-whitet);
+            padding-bottom: 0.5rem;
+        }
+
+        .data-label {
+            font-weight: 600;
+            color: var(--color-gray-dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .data-value {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--color-text);
+        }
+
+        /* Estado */
+        .status-value {
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            color: #2e7d32;
+        }
+
+        /* Verde oscuro minimalista */
+        .status-inactive {
+            color: #c62828;
+        }
+
+        /* Rojo oscuro minimalista */
+
+        /* Botón Volver (Estilo captura) */
+        .btn-volver-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-volver {
+            padding: 0.8rem 2rem;
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            color: var(--color-text);
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .btn-volver:hover {
+            background-color: var(--color-whitet);
+            border-color: var(--color-gray-dark);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .error-msg {
+            color: var(--color-text);
+            text-align: center;
+            margin-top: 2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- INICIO: GUARDIÁN UNIVERSAL DE ACCESO (Copiar en TODOS los archivos .html) -->
+    <script>
+        (function () {
+            const SESSION_KEY = 'mini_json_session_data';
+
+            // 1. Obtener sesión actual
+            const sessionData = localStorage.getItem(SESSION_KEY);
+            const session = sessionData ? JSON.parse(sessionData) : null;
+
+            // Si no hay sesión y no estamos en Login -> Echar
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Si no hay sesión y estamos en Login -> No hacer nada más
+            if (!session) return;
+
+            // 2. Definir Mapa de Permisos (Que rol puede ver que archivo)
+            const permissions = {
+                'admin': [
+                    'dashboard.html',
+                    'usuarios.html',
+                    'jugadores.html',
+                    'categorias.html',
+                    'tutores.html',
+                    'pagos.html',
+                    'calendario.html'
+                ],
+                'profesor': [
+                    'dashboard_profesor.html'
+                ],
+                'jugador': [
+                    'dashboard_jugador.html',
+                    'perfil-jugador.html'
+                ],
+                'tutor': [
+                    'dashboard_tutor.html',
+                    'perfil-jugador.html'        // PERMISO VER PERFIL
+                ]
+            };
+
+            const role = session.rol.toLowerCase();
+            const allowedPages = permissions[role] || [];
+
+            // 3. Obtener el nombre del archivo actual (ej: "dashboard.html")
+            const currentFilename = window.location.pathname.split('/').pop();
+
+            // 4. Lógica de REDIRECCIÓN (Expulsión de URL prohibida)
+            // Si el archivo actual NO está en la lista permitida del rol
+            if (!allowedPages.includes(currentFilename)) {
+                // Redirigir al primer dashboard permitido para ese rol
+                window.location.href = allowedPages[0] || 'login.html';
+                return;
+            }
+
+            // 5. Lógica de OCULTAR MENÚS (UI)
+            // Buscar todos los enlaces en el sidebar y ocultar los no permitidos
+            // Buscamos cualquier <a> que esté dentro de un <aside>
+            const sidebarLinks = document.querySelectorAll('aside a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Verificar si ese href está en la lista permitida
+                if (href && !allowedPages.includes(href)) {
+                    link.style.display = 'none'; // Ocultar enlace
+                }
+            });
+
+        })();
+    </script>
+    <!-- FIN GUARDIÁN UNIVERSAL -->
+
+    <!-- SIDEBAR (Misma estructura) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">MVP Soccer</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard_jugador.html">Mi Dashboard</a></li>
+            <li><a href="dashboard_tutor.html">Mis Hijos / Jugadores</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="sidebar-user-name">Usuario</span>
+            <button id="sidebar-logout-btn" class="btn-logout-sidebar">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+
+        <header class="page-header">
+            <h2>Perfil de Jugador</h2>
+        </header>
+
+        <div id="loading" style="text-align: center; margin-top: 2rem;">Cargando...</div>
+        <div id="error" class="hidden error-msg">Jugador no encontrado.</div>
+
+        <!-- Estructura del Perfil -->
+        <div id="profile-view" class="hidden profile-layout">
+            <div class="profile-card">
+                <!-- Avatar (Círculo con Iniciales) -->
+                <div class="profile-avatar" id="avatar-initials">AZ</div>
+
+                <!-- Lista de Datos -->
+                <div class="player-data">
+                    <div class="data-row">
+                        <span class="data-label">Nombre</span>
+                        <span class="data-value" id="disp-name">andres zuñiga</span>
+                    </div>
+
+                    <div class="data-row">
+                        <span class="data-label">Año</span>
+                        <span class="data-value" id="disp-year">2010</span>
+                    </div>
+
+                    <div class="data-row">
+                        <span class="data-label">Email</span>
+                        <span class="data-value" id="disp-email">andres@email.com</span>
+                    </div>
+
+                    <div class="data-row">
+                        <span class="data-label">Grupo Asignado</span>
+                        <span class="data-value" id="disp-group">Sin grupo</span>
+                    </div>
+
+                    <div class="data-row">
+                        <span class="data-label">Estado</span>
+                        <span class="status-value status-active" id="disp-status">ACTIVO</span>
+                    </div>
+                </div>
+
+                <!-- Botón Volver (Estilo captura) -->
+                <div class="btn-volver-container">
+                    <button onclick="window.location.href='jugadores.html'" class="btn-volver">VOLVER</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- LÓGICA (JS) -->
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        // --- SERVICIOS COMPARTIDOS ---
+        class AuthService {
+            static getSession() {
+                const data = localStorage.getItem(SESSION_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            static logout() {
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        }
+
+        class DBService {
+            getData() {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+        }
+
+        // --- CONTROLADOR DE PERFIL ---
+        class ProfileController {
+            constructor() {
+                this.db = new DBService();
+                this.user = AuthService.getSession();
+
+                // Elementos DOM
+                this.viewProfile = document.getElementById('profile-view');
+                this.loading = document.getElementById('loading');
+                this.error = document.getElementById('error');
+                this.sidebarUser = document.getElementById('sidebar-user-name');
+
+                this.init();
+            }
+
+            init() {
+                if (!this.user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                this.sidebarUser.textContent = this.user.nombre;
+                document.getElementById('sidebar-logout-btn').addEventListener('click', () => AuthService.logout());
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const playerId = urlParams.get('id');
+
+                if (!playerId) {
+                    this.showError();
+                    return;
+                }
+
+                this.loadPlayer(parseInt(playerId));
+            }
+
+            loadPlayer(id) {
+                const db = this.db.getData();
+
+                if (!db || !db['mvp soccer'] || !db['mvp soccer'].jugadores) {
+                    this.showError();
+                    return;
+                }
+
+                const player = db['mvp soccer'].jugadores.rows.find(p => p.id === id);
+
+                if (!player) {
+                    this.showError();
+                    return;
+                }
+
+                this.renderPlayer(player);
+            }
+
+            renderPlayer(player) {
+                this.loading.classList.add('hidden');
+                this.error.classList.add('hidden');
+                this.viewProfile.classList.remove('hidden');
+
+                // Datos
+                document.getElementById('disp-name').textContent = `${player.nombre} ${player.apellidos}`;
+                document.getElementById('disp-year').textContent = player.año;
+                document.getElementById('disp-email').textContent = player.email;
+
+                // Iniciales Avatar
+                const initialName = player.nombre ? player.nombre[0].toUpperCase() : '';
+                const initialLast = player.apellidos ? player.apellidos[0].toUpperCase() : '';
+                document.getElementById('avatar-initials').textContent = initialName + initialLast;
+
+                // Estado
+                const statusEl = document.getElementById('disp-status');
+                const statusUpper = player.estado.toUpperCase();
+                statusEl.textContent = statusUpper;
+                statusEl.className = 'status-value';
+                if (player.estado === 'activo') statusEl.classList.add('status-active');
+                else statusEl.classList.add('status-inactive');
+
+                // NUEVO: Buscar y mostrar nombre del Grupo
+                const db = this.db.getData();
+                let groupName = 'Sin grupo asignado';
+
+                if (db && db['mvp soccer'] && db['mvp soccer'].categorias && player.grupo_id) {
+                    const group = db['mvp soccer'].categorias.rows.find(g => g.id == player.grupo_id);
+                    if (group) {
+                        groupName = group.nombre;
+                    }
+                }
+
+                document.getElementById('disp-group').textContent = groupName;
+            }
+            showError() {
+                this.loading.classList.add('hidden');
+                this.viewProfile.classList.add('hidden');
+                this.error.classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new ProfileController();
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. Obtener sesión actual
+            const session = JSON.parse(localStorage.getItem('mini_json_session_data'));
+
+            // 2. Si hay sesión, aplicar lógica de visibilidad
+            if (session && session.rol) {
+                // Buscamos los elementos por su atributo href
+                const linkJugador = document.querySelector('a[href="dashboard_jugador.html"]');
+                const linkTutor = document.querySelector('a[href="dashboard_tutor.html"]');
+
+                // Si el rol es JUGADOR, ocultamos el link del Tutor
+                if (session.rol === 'jugador') {
+                    if (linkTutor) linkTutor.parentElement.style.display = 'none';
+                }
+                // Si el rol es TUTOR, ocultamos el link del Jugador
+                else if (session.rol === 'tutor') {
+                    if (linkJugador) linkJugador.parentElement.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

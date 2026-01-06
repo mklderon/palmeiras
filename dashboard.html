@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Soccer - Dashboard</title>
+
+    <!-- ESTILOS (CSS) -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-whitet: #fff;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            /* Negro casi puro para sidebar */
+            --color-sidebar-text: #ffffff;
+            /* Colores Financieros */
+            --color-money-green: #2e7d32;
+            --color-money-blue: #2b6cb0;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-whitet);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        header.page-header {
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .user-role {
+            color: var(--color-gray-dark);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* CARDS DE ESTADÍSTICAS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            /* Asegura que las filas estén alineadas */
+            align-items: stretch; 
+        }
+
+        .stat-card {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 3rem; /* Ligeramente más grande para cabecer más dígitos */
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-gray-dark);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Modificadores para tarjetas financieras (Visual cues) */
+        .stat-card--money {
+            border-top: 4px solid var(--color-money-green);
+        }
+        .stat-card--money .stat-number {
+            color: var(--color-money-green);
+        }
+
+        .stat-card--month {
+            border-top: 4px solid var(--color-money-blue);
+        }
+        .stat-card--month .stat-number {
+            color: var(--color-money-blue);
+            font-size: 2.5rem; /* Un poco más pequeño si el texto es largo */
+        }
+
+        /* Utilidades */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- INICIO: GUARDIÁN UNIVERSAL DE ACCESO (Copiar en TODOS los archivos .html) -->
+    <script>
+        (function () {
+            const SESSION_KEY = 'mini_json_session_data';
+
+            // 1. Obtener sesión actual
+            const sessionData = localStorage.getItem(SESSION_KEY);
+            const session = sessionData ? JSON.parse(sessionData) : null;
+
+            // Si no hay sesión y no estamos en Login -> Echar
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Si no hay sesión y estamos en Login -> No hacer nada más
+            if (!session) return;
+
+            // 2. Definir Mapa de Permisos (Que rol puede ver que archivo)
+            const permissions = {
+                'admin': [
+                    'dashboard.html',
+                    'usuarios.html',
+                    'jugadores.html',
+                    'categorias.html',
+                    'tutores.html',
+                    'pagos.html',
+                    'calendario.html'
+                ],
+                'profesor': [
+                    'dashboard_profesor.html'
+                    // Nota: Calendario completo está bloqueado según tu requerimiento "solo ve su dashboard"
+                ],
+                'jugador': [
+                    'dashboard_jugador.html'
+                ],
+                'tutor': [
+                    'dashboard_tutor.html'
+                ]
+            };
+
+            const role = session.rol.toLowerCase();
+            const allowedPages = permissions[role] || [];
+
+            // 3. Obtener el nombre del archivo actual (ej: "dashboard.html")
+            const currentFilename = window.location.pathname.split('/').pop();
+
+            // 4. Lógica de REDIRECCIÓN (Expulsión de URL prohibida)
+            // Si el archivo actual NO está en la lista permitida del rol
+            if (!allowedPages.includes(currentFilename)) {
+                // Redirigir al primer dashboard permitido para ese rol
+                window.location.href = allowedPages[0] || 'login.html';
+                return;
+            }
+
+            // 5. Lógica de OCULTAR MENÚS (UI)
+            // Buscar todos los enlaces en el sidebar y ocultar los no permitidos
+            // Buscamos cualquier <a> que esté dentro de un <aside>
+            const sidebarLinks = document.querySelectorAll('aside a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Verificar si ese href está en la lista permitida
+                if (href && !allowedPages.includes(href)) {
+                    link.style.display = 'none'; // Ocultar enlace
+                }
+            });
+
+        })();
+    </script>
+    <!-- FIN GUARDIÁN UNIVERSAL -->
+
+    <!-- ESTRUCTURA (HTML) -->
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">MVP Soccer</div>
+
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html" class="active">Dashboard</a></li>
+            <li><a href="usuarios.html">Usuarios</a></li>
+            <li><a href="categorias.html">Categorías</a></li>
+            <li><a href="jugadores.html">Jugadores</a></li>
+            <li><a href="tutores.html">Tutores</a></li>
+            <li><a href="pagos.html">Pagos</a></li>
+            <li><a href="calendario.html">Calendario</a></li>
+        </ul>
+
+        <div class="user-info-mini">
+            <span id="sidebar-user-name">Usuario</span>
+            <button id="sidebar-logout-btn" class="btn-logout-sidebar">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <header class="page-header">
+            <div>
+                <h2>Dashboard</h2>
+                <span class="user-role" id="header-user-role">Admin</span>
+            </div>
+            <!-- Opcional: fecha u otro info -->
+        </header>
+
+        <section class="stats-grid">
+            <!-- Métricas Operativas -->
+            <div class="stat-card">
+                <div class="stat-number" id="stat-users-count">0</div>
+                <div class="stat-label">Usuarios Registrados</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number" id="stat-players-count">0</div>
+                <div class="stat-label">Jugadores Activos</div>
+            </div>
+
+            <!-- Métricas Financieras (Nuevas) -->
+            <div class="stat-card stat-card--money">
+                <div class="stat-number" id="stat-total-revenue">$ 0</div>
+                <div class="stat-label">Total Recaudado</div>
+            </div>
+
+            <div class="stat-card stat-card--month">
+                <div class="stat-number" id="stat-month-revenue">$ 0</div>
+                <div class="stat-label">Ingresos Mes Actual</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- LÓGICA (JS) -->
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        /**
+         * CLASE DE AUTH SERVICE (Manejo de Sesión)
+         */
+        class AuthService {
+            static getSession() {
+                const data = localStorage.getItem(SESSION_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+
+            static logout() {
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+
+            static checkAuth() {
+                if (!this.getSession()) {
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        /**
+         * CLASE DB SERVICE
+         */
+        class DBService {
+            getData() {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+        }
+
+        /**
+         * CLASE DASHBOARD CONTROLLER
+         */
+        class DashboardController {
+            constructor() {
+                this.db = new DBService();
+                this.user = AuthService.getSession();
+                this.currencyFormatter = new Intl.NumberFormat('es-CO', {
+                    style: 'currency',
+                    currency: 'COP',
+                    maximumFractionDigits: 0
+                });
+
+                // Elementos DOM
+                this.sidebarUserName = document.getElementById('sidebar-user-name');
+                this.headerUserRole = document.getElementById('header-user-role');
+                this.statUsers = document.getElementById('stat-users-count');
+                this.statPlayers = document.getElementById('stat-players-count');
+                this.statTotalRevenue = document.getElementById('stat-total-revenue');
+                this.statMonthRevenue = document.getElementById('stat-month-revenue');
+                
+                this.logoutBtn = document.getElementById('sidebar-logout-btn');
+
+                this.init();
+            }
+
+            init() {
+                // 1. Verificar autenticación
+                if (!this.user) {
+                    AuthService.checkAuth(); // Redirige si no hay sesión
+                    return;
+                }
+
+                // 2. Configurar eventos
+                this.logoutBtn.addEventListener('click', () => AuthService.logout());
+
+                // 3. Renderizar datos del usuario
+                this.renderUserInfo();
+
+                // 4. Calcular y renderizar estadísticas
+                this.renderStats();
+            }
+
+            renderUserInfo() {
+                if (this.user) {
+                    this.sidebarUserName.textContent = this.user.nombre;
+                    this.headerUserRole.textContent = this.user.rol;
+                }
+            }
+
+            renderStats() {
+                const data = this.db.getData();
+
+                let userCount = 0;
+                let playerCount = 0;
+                let totalRevenue = 0;
+                let currentMonthRevenue = 0;
+
+                const today = new Date();
+                const currentMonth = today.getMonth(); // 0-11
+                const currentYear = today.getFullYear();
+
+                if (data && data['mvp soccer']) {
+                    // 1. Contar Usuarios
+                    if (data['mvp soccer'].usuarios && data['mvp soccer'].usuarios.rows) {
+                        userCount = data['mvp soccer'].usuarios.rows.length;
+                    }
+
+                    // 2. Contar Jugadores
+                    if (data['mvp soccer'].jugadores && data['mvp soccer'].jugadores.rows) {
+                        playerCount = data['mvp soccer'].jugadores.rows.length;
+                    }
+
+                    // 3. Cálculos Financieros
+                    if (data['mvp soccer'].pagos && data['mvp soccer'].pagos.rows) {
+                        const payments = data['mvp soccer'].pagos.rows;
+
+                        // Sumar Total Histórico
+                        totalRevenue = payments.reduce((sum, p) => {
+                            const amount = parseInt(p.monto) || 0;
+                            return sum + amount;
+                        }, 0);
+
+                        // Filtrar y Sumar Mes Actual
+                        const currentPayments = payments.filter(p => {
+                            const payDate = new Date(p.fecha_pago);
+                            return (
+                                (payDate.getMonth() === currentMonth) && 
+                                (payDate.getFullYear() === currentYear)
+                            );
+                        });
+
+                        currentMonthRevenue = currentPayments.reduce((sum, p) => {
+                            const amount = parseInt(p.monto) || 0;
+                            return sum + amount;
+                        }, 0);
+                    }
+                }
+
+                // Actualizar DOM Operativo
+                this.statUsers.textContent = userCount;
+                this.statPlayers.textContent = playerCount;
+
+                // Actualizar DOM Financiero
+                this.statTotalRevenue.textContent = this.currencyFormatter.format(totalRevenue);
+                this.statMonthRevenue.textContent = this.currencyFormatter.format(currentMonthRevenue);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new DashboardController();
+        });
+    </script>
+</body>
+
+</html>

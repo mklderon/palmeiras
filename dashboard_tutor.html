@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor - Dashboard</title>
+
+    <!-- ESTILOS -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-gray-light: #f4f4f4;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --color-blue: #2b6cb0;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-gray-light);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Main */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem 0;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 0.5rem;
+        }
+
+        /* HERO TARJETA FINANCIERA */
+        .finance-hero {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            padding: 2rem;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .finance-hero h3 {
+            font-size: 1rem;
+            color: var(--color-gray-dark);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .finance-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .finance-status {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .status-ok {
+            color: #2e7d32;
+        }
+
+        .status-debt {
+            color: #c53030;
+        }
+
+        /* GRID JUGADORES */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .player-card {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            padding: 1.5rem;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            /* height: 200px;  <-- REMOVIDO para permitir crecimiento dinámico */
+            min-height: 200px;
+            transition: transform 0.2s;
+        }
+
+        .player-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar-circle {
+            width: 60px;
+            height: 60px;
+            background: #000;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .card-info {
+            flex: 1;
+        }
+
+        .card-info h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+            line-height: 1.2;
+        }
+
+        .card-info .age-text {
+            font-size: 0.9rem;
+            color: var(--color-gray-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-cat {
+            background-color: var(--color-gray-light);
+            color: var(--color-gray-dark);
+            border: 1px solid var(--color-gray-medium);
+        }
+
+        /* ESTILOS PARA LA LISTA INDISCRIMINADA DE EVENTOS */
+        .activity-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--color-gray-medium);
+            width: 100%;
+        }
+
+        .activity-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--color-gray-dark);
+            margin-bottom: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .event-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .event-list-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            background: #fafafa;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border-left: 3px solid transparent;
+        }
+
+        .event-list-item.type-partido {
+            border-left-color: var(--color-blue);
+        }
+
+        .event-list-item.type-entrenamiento {
+            border-left-color: var(--color-text);
+        }
+
+        .event-date-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 45px;
+            margin-right: 10px;
+            border-right: 1px solid #ddd;
+            padding-right: 10px;
+        }
+
+        .event-day-num {
+            font-weight: 800;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .event-month-str {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .event-info-box {
+            flex: 1;
+        }
+
+        .event-row-top {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .event-time {
+            font-weight: bold;
+            color: #555;
+            font-size: 0.75rem;
+        }
+
+        .event-main-text {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #000;
+        }
+
+        .event-sub-text {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .btn-view-profile {
+            margin-top: 1.5rem;
+            align-self: flex-end;
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: 0.2s;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-view-profile:hover {
+            border-color: var(--color-text);
+            background-color: var(--color-gray-light);
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background-color: var(--color-bg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        .modal h3 {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .modal-list {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .list-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Estilos para etiquetas de pago */
+        .badge-pay-ok {
+            background-color: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .badge-pay-late {
+            background-color: #fed7d7;
+            color: #822727;
+            border: 1px solid #feb2b2;
+        }
+
+        .badge-pending {
+            background-color: #fffaf0;
+            color: #9c4221;
+            border: 1px solid #fbd38d;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- GUARDIÁN UNIVERSAL -->
+    <script>
+        (function () {
+            const SESSION_KEY = 'mini_json_session_data';
+            const DB_KEY = 'mini_json_db_data';
+
+            let session = null;
+            try {
+                const data = localStorage.getItem(SESSION_KEY);
+                session = data ? JSON.parse(data) : null;
+            } catch (e) { console.error(e); }
+
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!session) return;
+
+            // Permisos TUTOR
+            const permissions = {
+                'tutor': ['dashboard_tutor.html', 'perfil-jugador.html']
+            };
+
+            const currentFilename = window.location.pathname.split('/').pop();
+            const allowedPages = permissions['tutor'] || [];
+
+            if (!allowedPages.includes(currentFilename)) {
+                window.location.href = allowedPages[0];
+                return;
+            }
+        })();
+    </script>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">Tutor</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard_tutor.html" class="active">Mis Hijos / Jugadores</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="user-name">Usuario</span>
+            <button id="btn-logout" class="btn-logout-sidebar">Salir</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+        <header>
+            <h2>Hola, <span id="header-name"></span></h2>
+            <p style="color: var(--color-gray-dark)">Aquí tienes el resumen de pagos y actividades de tus hijos.</p>
+        </header>
+
+        <!-- HERO TARJETA FINANCIERA -->
+        <div id="finance-hero" class="finance-hero">
+            <h3>Estado General de Pagos</h3>
+            <div class="finance-status status-ok">Todo al día</div>
+        </div>
+
+        <div class="section-title">Mis Hijos / Jugadores</div>
+        <div id="players-container" class="players-grid">
+            <!-- JS Generará las tarjetas -->
+        </div>
+    </main>
+
+    <!-- MODAL LISTA JUGADORES -->
+    <div id="players-modal" class="modal-overlay">
+        <div class="modal">
+            <h3 id="modal-cat-name">Jugadores</h3>
+            <div id="players-list" class="modal-list"></div>
+            <button id="btn-close-modal" class="btn-close-modal">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        // Autenticación
+        const session = JSON.parse(localStorage.getItem(SESSION_KEY));
+        if (!session) window.location.href = 'login.html';
+
+        document.getElementById('user-name').textContent = session.nombre;
+        document.getElementById('header-name').textContent = session.nombre;
+        document.getElementById('btn-logout').addEventListener('click', () => { localStorage.removeItem(SESSION_KEY); window.location.href = 'login.html'; });
+
+        const db = JSON.parse(localStorage.getItem(DB_KEY));
+
+        // Buscar Tutor
+        const tutor = db['mvp soccer'].tutores.rows.find(t => t.email === session.email);
+        const container = document.getElementById('players-container');
+
+        if (!tutor) {
+            container.innerHTML = '<p>No tienes jugadores asociados a tu perfil.</p>';
+            document.getElementById('finance-hero').style.display = 'none';
+        } else {
+            // Buscar jugadores del tutor
+            const myPlayers = db['mvp soccer'].jugadores.rows.filter(p => p.id == tutor.id_jugador);
+
+            let hasDebt = false;
+            let totalDebt = 0;
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            const isLate = today.getDate() > 5;
+
+            if (myPlayers.length === 0) {
+                container.innerHTML = '<p>No tienes jugadores vinculados.</p>';
+            } else {
+                // Pre-cargar eventos
+                const allEvents = db['mvp soccer'].calendario.rows || [];
+
+                myPlayers.forEach(p => {
+                    // --- 1. CÁLCULO DE EDAD REAL ---
+                    const age = currentYear - parseInt(p.año);
+
+                    // --- 2. LÓGICA DE PAGOS MODIFICADA ---
+                    const hasPayment = db['mvp soccer'].pagos.rows.some(pay =>
+                        pay.id_jugador == p.id &&
+                        parseInt(pay.mes) === currentMonth &&
+                        parseInt(pay.anio) === currentYear
+                    );
+
+                    let statusHtml = '';
+
+                    if (hasPayment) {
+                        statusHtml = '<span class="badge badge-cat badge-pay-ok">Pagado</span>';
+                    } else {
+                        // AQUÍ ESTÁ EL CAMBIO: hasDebt se activa SIEMPRE que no haya pago
+                        hasDebt = true;
+                        totalDebt += 150000;
+
+                        if (isLate) {
+                            statusHtml = '<span class="badge badge-cat badge-pay-late">MOROSO</span>';
+                        } else {
+                            statusHtml = '<span class="badge badge-cat badge-pending">Pendiente</span>';
+                        }
+                    }
+
+                    // --- 3. LISTA DE EVENTOS INDISCRIMINADA ---
+                    // Filtrar eventos futuros del jugador (Ambos tipos)
+                    const futureEvents = allEvents.filter(e =>
+                        e.estado === 'activo' &&
+                        (e.tipo === 'entrenamiento' || e.tipo === 'partido') &&
+                        parseInt(e.id_categoria) == p.grupo_id &&
+                        e.fecha >= today.toISOString().split('T')[0]
+                    );
+
+                    // Ordenar cronológicamente
+                    futureEvents.sort((a, b) => new Date(a.fecha + 'T' + a.hora) - new Date(b.fecha + 'T' + b.hora));
+
+                    // Tomar los próximos 3 eventos
+                    const eventsToShow = futureEvents.slice(0, 3);
+
+                    let activityHtml = '';
+
+                    if (eventsToShow.length > 0) {
+                        let listHtml = '<ul class="event-list">';
+
+                        eventsToShow.forEach(ev => {
+                            const isMatch = ev.tipo === 'partido';
+                            const typeClass = isMatch ? 'type-partido' : 'type-entrenamiento';
+
+                            // Formato Fecha
+                            const dateObj = new Date(ev.fecha);
+                            const dayNum = dateObj.getDate();
+                            const monthStr = dateObj.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
+
+                            // Textos descriptivos
+                            const mainText = isMatch ? `vs ${ev.rival}` : 'Entrenamiento';
+                            const subText = isMatch ? `${ev.lugar}` : ev.duracion;
+                            const timeStr = ev.hora;
+
+                            listHtml += `
+                                <li class="event-list-item ${typeClass}">
+                                    <div class="event-date-box">
+                                        <span class="event-day-num">${dayNum}</span>
+                                        <span class="event-month-str">${monthStr}</span>
+                                    </div>
+                                    <div class="event-info-box">
+                                        <div class="event-row-top">
+                                            <span class="event-time">${timeStr}</span>
+                                            <span class="badge" style="background:${isMatch ? 'var(--color-blue)' : '#000'}; color:#fff; font-size:0.6rem;">${ev.tipo}</span>
+                                        </div>
+                                        <div class="event-main-text">${mainText}</div>
+                                        <div class="event-sub-text">${subText}</div>
+                                    </div>
+                                </li>
+                            `;
+                        });
+
+                        listHtml += '</ul>';
+                        activityHtml = `
+                            <div class="activity-section">
+                                <div class="activity-title">Próximas Actividades</div>
+                                ${listHtml}
+                            </div>
+                        `;
+                    } else {
+                        activityHtml = `
+                            <div class="activity-section">
+                                <div class="activity-title">Sin actividades próximas</div>
+                            </div>`;
+                    }
+
+                    // --- RENDERIZADO DE TARJETA ---
+                    container.innerHTML += `
+                        <div class="player-card">
+                            <div class="card-header">
+                                <div class="avatar-circle">${(p.nombre[0] + p.apellidos[0]).toUpperCase()}</div>
+                                <div class="card-info">
+                                    <h3>${p.nombre} ${p.apellidos}</h3>
+                                    <div class="age-text">${age} años</div>
+                                    <div style="font-size:0.8rem; color:var(--color-gray-dark); margin-bottom:0.2rem;">Categoría: Sub-17 A</div>
+                                </div>
+                            </div>
+                            <div class="card-badges">
+                                ${statusHtml}
+                            </div>
+                            ${activityHtml}
+                            <button class="btn-view-profile" onclick="window.location.href='perfil-jugador.html?id=${p.id}'">Ver Perfil Completo</button>
+                        </div>`;
+                });
+            }
+
+            if (hasDebt) {
+                document.getElementById('finance-hero').innerHTML = `
+                    <h3>Tienes Deudas Pendientes</h3>
+                    <div class="finance-amount" style="margin-bottom:0.5rem;">$${new Intl.NumberFormat('es-CO').format(totalDebt)}</div>
+                    <div class="finance-status status-debt">Por favor realiza el pago.</div>
+                `;
+                document.getElementById('finance-hero').style.display = 'block';
+            } else {
+                document.getElementById('finance-hero').innerHTML = `
+                    <h3>Estado General de Pagos</h3>
+                    <div class="finance-status status-ok">Todo al día</div>
+                `;
+                document.getElementById('finance-hero').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Soccer - Calendario</title>
+
+    <!-- ESTILOS (CSS) -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-gray-light: #f4f4f4;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-gray-light);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Main */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.page-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .btn-create {
+            padding: 0.6rem 1.2rem;
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* CALENDARIO GRID UI */
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-controls button {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .calendar-controls button:hover {
+            background: var(--color-gray-light);
+        }
+
+        .current-month {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background-color: var(--color-text);
+            border: 1px solid var(--color-text);
+            gap: 1px;
+            /* Crear las lineas grises entre celdas */
+        }
+
+        .day-header {
+            background-color: var(--color-gray-light);
+            padding: 1rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .day-cell {
+            background-color: var(--color-bg);
+            min-height: 120px;
+            padding: 0.5rem;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .day-cell:hover {
+            background-color: #fafafa;
+        }
+
+        .day-cell.today {
+            background-color: var(--color-gray-light);
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .day-number.empty {
+            color: #ccc;
+        }
+
+        /* EVENT PILLS */
+        .event-pill {
+            display: block;
+            margin-bottom: 0.3rem;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.7rem;
+            color: white;
+            border-radius: 2px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .event-pill.type-entrenamiento {
+            background-color: var(--color-text);
+        }
+
+        /* Negro */
+        .event-pill.type-partido {
+            background-color: #2b6cb0;
+        }
+
+        /* Azul */
+        .event-pill.cancelado {
+            opacity: 0.5;
+            text-decoration: line-through;
+            background-color: #999;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background-color: var(--color-bg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+            /* 1. HACEMOS EL MODAL FLEXBOX */
+            display: flex;
+            flex-direction: column;
+
+            /* 2. LIMITAMOS LA ALTURA MÁXIMA AL 90% DE LA PANTALLA */
+            max-height: 90vh;
+        }
+
+        .modal h3 {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 0.5rem;
+
+            /* 3. EL TÍTULO NO DEBE ENCIMARSE NI MOVERSE */
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-gray-dark);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--color-gray-medium);
+            background-color: var(--color-gray-light);
+            font-family: var(--font-family);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-text);
+            background-color: var(--color-bg);
+        }
+
+        /* Secciones dinámicas */
+        .dynamic-section {
+            display: none;
+            background-color: #f9f9f9;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--color-gray-medium);
+            border-radius: 4px;
+        }
+
+        .dynamic-section.active {
+            display: block;
+        }
+
+        /* 4. APLICAR SCROLL AL FORMULARIO (ID ESPECÍFICO DE CALENDARIO) */
+        #event-form {
+            /* Crece para llenar el espacio disponible */
+            flex-grow: 1;
+            /* Activa barra de scroll vertical si el contenido es largo */
+            overflow-y: auto;
+            /* Espacio a la derecha para que la barra de scroll no tape el texto */
+            padding-right: 5px;
+        }
+
+        /* Checkbox años grid */
+        .years-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .year-checkbox {
+            display: none;
+        }
+
+        .year-label {
+            display: block;
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--color-gray-light);
+            border: 1px solid var(--color-gray-medium);
+            cursor: pointer;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .year-checkbox:checked+.year-label {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border-color: var(--color-text);
+            font-weight: bold;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            /* space-between si agregas borrar */
+            gap: 1rem;
+            margin-top: 1.5rem;
+
+            /* 5. LOS BOTONES NO DEBEN ENCIMARSE, SE QUEDAN ABAJO */
+            flex-shrink: 0;
+        }
+
+        .btn-delete {
+            background: none;
+            border: 1px solid #c53030;
+            color: #c53030;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-secondary {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+        <!-- INICIO: GUARDIÁN UNIVERSAL DE ACCESO (Copiar en TODOS los archivos .html) -->
+    <script>
+        (function() {
+            const SESSION_KEY = 'mini_json_session_data';
+
+            // 1. Obtener sesión actual
+            const sessionData = localStorage.getItem(SESSION_KEY);
+            const session = sessionData ? JSON.parse(sessionData) : null;
+
+            // Si no hay sesión y no estamos en Login -> Echar
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Si no hay sesión y estamos en Login -> No hacer nada más
+            if (!session) return;
+
+            // 2. Definir Mapa de Permisos (Que rol puede ver que archivo)
+            const permissions = {
+                'admin': [
+                    'dashboard.html',
+                    'usuarios.html', 
+                    'jugadores.html', 
+                    'categorias.html', 
+                    'tutores.html', 
+                    'pagos.html', 
+                    'calendario.html'
+                ],
+                'profesor': [
+                    'dashboard_profesor.html'
+                    // Nota: Calendario completo está bloqueado según tu requerimiento "solo ve su dashboard"
+                ],
+                'jugador': [
+                    'dashboard_jugador.html'
+                ],
+                'tutor': [
+                    'dashboard_tutor.html'
+                ]
+            };
+
+            const role = session.rol.toLowerCase();
+            const allowedPages = permissions[role] || [];
+            
+            // 3. Obtener el nombre del archivo actual (ej: "dashboard.html")
+            const currentFilename = window.location.pathname.split('/').pop();
+
+            // 4. Lógica de REDIRECCIÓN (Expulsión de URL prohibida)
+            // Si el archivo actual NO está en la lista permitida del rol
+            if (!allowedPages.includes(currentFilename)) {
+                // Redirigir al primer dashboard permitido para ese rol
+                window.location.href = allowedPages[0] || 'login.html';
+                return;
+            }
+
+            // 5. Lógica de OCULTAR MENÚS (UI)
+            // Buscar todos los enlaces en el sidebar y ocultar los no permitidos
+            // Buscamos cualquier <a> que esté dentro de un <aside>
+            const sidebarLinks = document.querySelectorAll('aside a');
+            
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Verificar si ese href está en la lista permitida
+                if (href && !allowedPages.includes(href)) {
+                    link.style.display = 'none'; // Ocultar enlace
+                }
+            });
+
+        })();
+    </script>
+    <!-- FIN GUARDIÁN UNIVERSAL -->
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">MVP Soccer</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="usuarios.html">Usuarios</a></li>
+            <li><a href="categorias.html">Categorías</a></li>
+            <li><a href="jugadores.html">Jugadores</a></li>
+            <li><a href="tutores.html">Tutores</a></li>
+            <li><a href="pagos.html">Pagos</a></li>
+            <li><a href="calendario.html" class="active">Calendario</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="sidebar-user-name">Usuario</span>
+            <button id="sidebar-logout-btn" class="btn-logout-sidebar">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+        <header class="page-header">
+            <h2>Calendario de Actividades</h2>
+            <button id="btn-create-event" class="btn-create">+ Evento Hoy</button>
+        </header>
+
+        <div class="calendar-controls">
+            <button id="btn-prev-month">&lt;</button>
+            <span class="current-month" id="current-month-display">Octubre 2023</span>
+            <button id="btn-next-month">&gt;</button>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid">
+            <!-- JS generará los días -->
+        </div>
+    </main>
+
+    <!-- MODAL EVENTO -->
+    <div id="event-modal" class="modal-overlay">
+        <div class="modal">
+            <h3 id="modal-title">Nuevo Evento</h3>
+            <form id="event-form">
+                <input type="hidden" id="event-id">
+
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="event-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" id="event-time" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Tipo de Evento</label>
+                    <select id="event-type" required>
+                        <option value="entrenamiento">Entrenamiento</option>
+                        <option value="partido">Partido (Amistoso / Torneo)</option>
+                    </select>
+                </div>
+
+                <!-- SECCIÓN DINÁMICA: ENTRENAMIENTO -->
+                <div id="section-training" class="dynamic-section active">
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="event-category">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duración</label>
+                        <select id="event-duration">
+                            <option value="60 min">1 Hora</option>
+                            <option value="90 min">1.5 Horas</option>
+                            <option value="120 min">2 Horas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DINÁMICA: PARTIDO -->
+                <div id="section-match" class="dynamic-section">
+                    <!-- AGREGAR ESTE BLOQUE DE CATEGORÍA AQUÍ -->
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="event-category-match">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                    <!-- FIN BLOQUE -->
+
+                    <div class="form-group">
+                        <label>Rival</label>
+                        <input type="text" id="event-rival" placeholder="Ej: Escuela Deportiva">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Partido</label>
+                        <select id="event-match-type">
+                            <option value="amistoso">Amistoso</option>
+                            <option value="torneo">Torneo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Lugar</label>
+                        <input type="text" id="event-location" placeholder="Ej: Cancha Principal">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="event-status">
+                        <option value="activo">Activo / Programado</option>
+                        <option value="cancelado">Cancelado / Suspendido</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="btn-delete-event" class="btn-delete"
+                        style="display:none;">Eliminar</button>
+                    <button type="button" id="btn-cancel-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-save">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        class AuthService {
+            static getSession() {
+                const data = localStorage.getItem(SESSION_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            static logout() {
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        }
+
+        class DBService {
+            getData() {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            saveData(data) {
+                localStorage.setItem(DB_KEY, JSON.stringify(data));
+            }
+        }
+
+        class CalendarioController {
+            constructor() {
+                this.db = new DBService();
+                this.user = AuthService.getSession();
+
+                // Estado del Calendario
+                this.currentDate = new Date();
+                this.currentMonth = this.currentDate.getMonth();
+                this.currentYear = this.currentDate.getFullYear();
+
+                // DOM
+                this.grid = document.getElementById('calendar-grid');
+                this.monthDisplay = document.getElementById('current-month-display');
+                this.modal = document.getElementById('event-modal');
+                this.form = document.getElementById('event-form');
+
+                // Selectores Tipo (Para mostrar campos dinámicos)
+                this.selectType = document.getElementById('event-type');
+                this.sectionTraining = document.getElementById('section-training');
+                this.sectionMatch = document.getElementById('section-match');
+
+                this.init();
+            }
+
+            init() {
+                if (!this.user) { window.location.href = 'login.html'; return; }
+
+                document.getElementById('sidebar-logout-btn').addEventListener('click', () => AuthService.logout());
+                document.getElementById('sidebar-user-name').textContent = this.user.nombre;
+
+                // Navegación Mes
+                document.getElementById('btn-prev-month').addEventListener('click', () => this.changeMonth(-1));
+                document.getElementById('btn-next-month').addEventListener('click', () => this.changeMonth(1));
+                document.getElementById('btn-create-event').addEventListener('click', () => this.openModal());
+
+                // Modal
+                document.getElementById('btn-cancel-modal').addEventListener('click', () => this.closeModal());
+                document.getElementById('btn-delete-event').addEventListener('click', () => this.deleteEvent());
+                this.form.addEventListener('submit', (e) => this.saveEvent(e));
+
+                // Cambio dinámico de tipo evento
+                this.selectType.addEventListener('change', (e) => this.toggleTypeFields(e.target.value));
+
+                this.renderCalendar();
+            }
+
+            changeMonth(offset) {
+                this.currentMonth += offset;
+                if (this.currentMonth > 11) { this.currentMonth = 0; this.currentYear++; }
+                else if (this.currentMonth < 0) { this.currentMonth = 11; this.currentYear--; }
+                this.renderCalendar();
+            }
+
+            toggleTypeFields(type) {
+                if (type === 'entrenamiento') {
+                    this.sectionTraining.classList.add('active');
+                    this.sectionMatch.classList.remove('active');
+                } else {
+                    this.sectionTraining.classList.remove('active');
+                    this.sectionMatch.classList.add('active');
+                }
+            }
+
+            renderCalendar() {
+                const db = this.db.getData();
+                const events = db['mvp soccer'].calendario ? db['mvp soccer'].calendario.rows : [];
+                const categorias = db['mvp soccer'].categorias ? db['mvp soccer'].categorias.rows : [];
+
+                const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                this.monthDisplay.textContent = `${monthNames[this.currentMonth]} ${this.currentYear}`;
+
+                // Generar Grid
+                const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+                const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+                const startDayOfWeek = firstDay.getDay(); // 0 Dom, 1 Lun...
+
+                this.grid.innerHTML = '';
+
+                // Cabeceras
+                const daysHeader = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                daysHeader.forEach(d => {
+                    const div = document.createElement('div');
+                    div.className = 'day-header';
+                    div.textContent = d;
+                    this.grid.appendChild(div);
+                });
+
+                // Celdas vacías iniciales
+                for (let i = 0; i < startDayOfWeek; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'day-cell';
+                    cell.innerHTML = '<span class="day-number empty">&nbsp;</span>';
+                    this.grid.appendChild(cell);
+                }
+
+                // Días del mes
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'day-cell';
+
+                    // Formato fecha YYYY-MM-DD
+                    const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                    // Eventos de este día
+                    const dayEvents = events.filter(e => e.fecha === dateStr);
+
+                    let eventsHtml = '';
+                    dayEvents.forEach(ev => {
+                        const colorClass = ev.tipo === 'partido' ? 'type-partido' : 'type-entrenamiento';
+                        const cancelClass = ev.estado === 'cancelado' ? 'cancelado' : '';
+                        // Título corto para mostrar
+                        const title = ev.tipo === 'partido' ? `${ev.categoria_nombre} vs ${ev.rival}` : ev.categoria_nombre;
+
+                        eventsHtml += `<div class="event-pill ${colorClass} ${cancelClass}" onclick="event.stopPropagation(); window.app.editEvent(${ev.id})">${title}</div>`;
+                    });
+
+                    cell.innerHTML = `<span class="day-number">${i}</span>${eventsHtml}`;
+
+                    // Click en celda vacía para crear
+                    cell.addEventListener('click', () => this.openModal(dateStr));
+
+                    this.grid.appendChild(cell);
+                }
+            }
+
+            openModal(dateStr = null) {
+                this.form.reset();
+                document.getElementById('event-id').value = '';
+                document.getElementById('btn-delete-event').style.display = 'none';
+                document.getElementById('modal-title').textContent = 'Nuevo Evento';
+
+                // Llenar select categorías
+                this.populateCategories();
+                this.populateCategories('event-category-match');
+
+                // Fecha
+                if (dateStr) {
+                    document.getElementById('event-date').value = dateStr;
+                } else {
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    document.getElementById('event-date').value = `${yyyy}-${mm}-${dd}`;
+                }
+
+                this.toggleTypeFields('entrenamiento');
+                this.modal.classList.add('open');
+            }
+
+            closeModal() {
+                this.modal.classList.remove('open');
+            }
+
+            // --- NUEVA FUNCIÓN CORREGIDA ---
+            populateCategories(selectElementId = 'event-category') {
+                const db = this.db.getData();
+
+                // Buscar el elemento select usando el ID que nos pasamos
+                const catSelect = document.getElementById(selectElementId);
+
+                // Si no encuentra el elemento, no hace nada (para evitar errores)
+                if (!catSelect) return;
+
+                catSelect.innerHTML = '<option value="">Seleccionar categoría...</option>';
+
+                // Verificar que existan categorías en la base de datos
+                if (db && db['mvp soccer'] && db['mvp soccer'].categorias && db['mvp soccer'].categorias.rows) {
+                    const cats = db['mvp soccer'].categorias.rows;
+                    cats.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = c.nombre;
+                        catSelect.appendChild(opt);
+                    });
+                }
+            }
+
+            editEvent(eventId) {
+                const db = this.db.getData();
+                const ev = db['mvp soccer'].calendario.rows.find(e => e.id === eventId);
+                if (!ev) return;
+
+                // 1. Limpiar cualquier dato de "Entrenador" visual previo (Evita duplicados)
+                const oldCoachInfo = document.querySelector('.coach-info-temp');
+                if (oldCoachInfo) oldCoachInfo.remove();
+
+                this.populateCategories();
+                this.populateCategories('event-category-match'); // Asegurar llenar el del partido
+                this.toggleTypeFields(ev.tipo);
+
+                document.getElementById('event-id').value = ev.id;
+                document.getElementById('event-date').value = ev.fecha;
+                document.getElementById('event-time').value = ev.hora;
+                document.getElementById('event-type').value = ev.tipo;
+                document.getElementById('event-status').value = ev.estado;
+
+                if (ev.tipo === 'entrenamiento') {
+                    document.getElementById('event-category').value = ev.id_categoria;
+                    document.getElementById('event-duration').value = ev.duracion;
+
+                    // --- CORREGIDO: Mostrar Profesor ---
+                    const cat = db['mvp soccer'].categorias.rows.find(c => c.id == ev.id_categoria);
+                    if (cat && cat.profesor_id) {
+                        const prof = db['mvp soccer'].usuarios.rows.find(u => u.id == cat.profesor_id);
+                        if (prof) {
+                            const coachDisplay = document.createElement('div');
+                            coachDisplay.className = 'coach-info-temp'; // Clase para identificarla
+                            coachDisplay.style.marginBottom = "1rem";
+                            coachDisplay.style.padding = "0.5rem";
+                            coachDisplay.style.backgroundColor = "#f4f4f4";
+                            coachDisplay.style.border = "1px solid #e0e0e0";
+                            coachDisplay.style.fontSize = "0.8rem";
+                            coachDisplay.style.fontWeight = "bold";
+                            coachDisplay.textContent = `Entrenador Asignado: ${prof.nombre}`;
+
+                            // Verificación de Seguridad: Solo insertar si el contenedor existe
+                            const sectionTraining = document.querySelector('#section-training');
+                            if (sectionTraining) {
+                                // Buscamos el último form-group visible
+                                const lastGroup = sectionTraining.querySelector('.form-group:last-child');
+                                if (lastGroup) {
+                                    lastGroup.after(coachDisplay);
+                                }
+                            }
+                        }
+                    }
+
+                } else {
+                    document.getElementById('event-rival').value = ev.rival;
+                    document.getElementById('event-match-type').value = ev.tipo_partido;
+                    document.getElementById('event-location').value = ev.lugar;
+                }
+
+                document.getElementById('btn-delete-event').style.display = 'block';
+                document.getElementById('modal-title').textContent = 'Editar Evento';
+                this.modal.classList.add('open');
+            }
+
+            saveEvent(e) {
+                e.preventDefault();
+                const db = this.db.getData();
+                if (!db['mvp soccer'].calendario) db['mvp soccer'].calendario = { rows: [] };
+
+                const rows = db['mvp soccer'].calendario.rows;
+                const id = document.getElementById('event-id').value ? parseInt(document.getElementById('event-id').value) : Date.now();
+
+                const tipo = document.getElementById('event-type').value;
+
+                let eventData = {
+                    id: id,
+                    fecha: document.getElementById('event-date').value,
+                    hora: document.getElementById('event-time').value,
+                    tipo: tipo,
+                    estado: document.getElementById('event-status').value,
+                    // Defaults nulls
+                    id_categoria: null, categoria_nombre: null, duracion: null, rival: null, tipo_partido: null, lugar: null
+                };
+
+                // --- ACTUALIZACIÓN: Guardar Categoría según tipo ---
+                let catSelectId = (tipo === 'entrenamiento') ? 'event-category' : 'event-category-match';
+                let catSelect = document.getElementById(catSelectId);
+
+                if (tipo === 'entrenamiento') {
+                    eventData.id_categoria = catSelect.value;
+                    eventData.duracion = document.getElementById('event-duration').value;
+                    // Buscar nombre
+                    const cat = db['mvp soccer'].categorias.rows.find(c => c.id == eventData.id_categoria);
+                    eventData.categoria_nombre = cat ? cat.nombre : '';
+                } else {
+                    // Partido
+                    eventData.id_categoria = catSelect.value; // GUARDAR CATEGORÍA
+                    const cat = db['mvp soccer'].categorias.rows.find(c => c.id == eventData.id_categoria);
+                    eventData.categoria_nombre = cat ? cat.nombre : ''; // GUARDAR NOMBRE
+
+                    eventData.rival = document.getElementById('event-rival').value;
+                    eventData.tipo_partido = document.getElementById('event-match-type').value;
+                    eventData.lugar = document.getElementById('event-location').value;
+                }
+
+                const idx = rows.findIndex(r => r.id === id);
+                if (idx >= 0) rows[idx] = eventData;
+                else rows.push(eventData);
+
+                this.db.saveData(db);
+                this.closeModal();
+                this.renderCalendar();
+            }
+
+            deleteEvent() {
+                if (!confirm('¿Eliminar evento?')) return;
+                const db = this.db.getData();
+                const id = parseInt(document.getElementById('event-id').value);
+                db['mvp soccer'].calendario.rows = db['mvp soccer'].calendario.rows.filter(e => e.id !== id);
+                this.db.saveData(db);
+                this.closeModal();
+                this.renderCalendar();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new CalendarioController();
+        });
+    </script>
+</body>
+
+</html>

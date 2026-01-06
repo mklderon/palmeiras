@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVP Soccer - Jugadores</title>
+
+    <!-- ESTILOS (CSS) - Base compartida -->
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-whitet: #fff;
+            --color-gray-medium: #e0e0e0;
+            --color-gray-dark: #666666;
+            --color-sidebar-bg: #1a1a1a;
+            --color-sidebar-text: #ffffff;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-whitet);
+            color: var(--color-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            color: var(--color-sidebar-text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--color-gray-medium);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #333;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #aaa;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            color: var(--color-sidebar-text);
+            background-color: #333;
+        }
+
+        .user-info-mini {
+            padding: 1.5rem;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .user-info-mini span {
+            display: block;
+            color: var(--color-sidebar-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .btn-logout-sidebar {
+            margin-top: 0.5rem;
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-logout-sidebar:hover {
+            border-color: var(--color-sidebar-text);
+            color: var(--color-sidebar-text);
+        }
+
+        /* Contenido Principal */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        header.page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .btn-create {
+            padding: 0.6rem 1.2rem;
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .btn-create:hover {
+            opacity: 0.8;
+        }
+
+        /* TABLA */
+        .table-container {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-gray-medium);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--color-whitet);
+            font-weight: 600;
+            color: var(--color-gray-dark);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background-color: #fafafa;
+        }
+
+        /* Acciones */
+        .action-btn {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            cursor: pointer;
+            padding: 0.3rem 0.6rem;
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            border-color: var(--color-text);
+            background-color: var(--color-text);
+            color: var(--color-bg);
+        }
+
+        .btn-toggle.active {
+            background-color: green;
+            color: white;
+            border-color: green;
+        }
+
+        .btn-toggle.inactive {
+            background-color: red;
+            color: white;
+            border-color: red;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background-color: var(--color-bg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid var(--color-gray-medium);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal h3 {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--color-gray-medium);
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-gray-dark);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--color-gray-medium);
+            background-color: var(--color-whitet);
+            font-family: var(--font-family);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-text);
+            background-color: var(--color-bg);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background: none;
+            border: 1px solid var(--color-gray-medium);
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- ESTILOS DE FILTROS --- */
+        .filters-container {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-gray-medium);
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: var(--color-gray-dark);
+            text-transform: uppercase;
+        }
+
+        .filter-input {
+            padding: 0.6rem;
+            border: 1px solid var(--color-gray-medium);
+            background-color: var(--color-whitet);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--color-text);
+            background-color: var(--color-bg);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- INICIO: GUARDIÁN UNIVERSAL DE ACCESO (Copiar en TODOS los archivos .html) -->
+    <script>
+        (function () {
+            const SESSION_KEY = 'mini_json_session_data';
+
+            // 1. Obtener sesión actual
+            const sessionData = localStorage.getItem(SESSION_KEY);
+            const session = sessionData ? JSON.parse(sessionData) : null;
+
+            // Si no hay sesión y no estamos en Login -> Echar
+            if (!session && window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Si no hay sesión y estamos en Login -> No hacer nada más
+            if (!session) return;
+
+            // 2. Definir Mapa de Permisos (Que rol puede ver que archivo)
+            const permissions = {
+                'admin': [
+                    'dashboard.html',
+                    'usuarios.html',
+                    'jugadores.html',
+                    'categorias.html',
+                    'tutores.html',
+                    'pagos.html',
+                    'calendario.html'
+                ],
+                'profesor': [
+                    'dashboard_profesor.html'
+                    // Nota: Calendario completo está bloqueado según tu requerimiento "solo ve su dashboard"
+                ],
+                'jugador': [
+                    'dashboard_jugador.html'
+                ],
+                'tutor': [
+                    'dashboard_tutor.html'
+                ]
+            };
+
+            const role = session.rol.toLowerCase();
+            const allowedPages = permissions[role] || [];
+
+            // 3. Obtener el nombre del archivo actual (ej: "dashboard.html")
+            const currentFilename = window.location.pathname.split('/').pop();
+
+            // 4. Lógica de REDIRECCIÓN (Expulsión de URL prohibida)
+            // Si el archivo actual NO está en la lista permitida del rol
+            if (!allowedPages.includes(currentFilename)) {
+                // Redirigir al primer dashboard permitido para ese rol
+                window.location.href = allowedPages[0] || 'login.html';
+                return;
+            }
+
+            // 5. Lógica de OCULTAR MENÚS (UI)
+            // Buscar todos los enlaces en el sidebar y ocultar los no permitidos
+            // Buscamos cualquier <a> que esté dentro de un <aside>
+            const sidebarLinks = document.querySelectorAll('aside a');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Verificar si ese href está en la lista permitida
+                if (href && !allowedPages.includes(href)) {
+                    link.style.display = 'none'; // Ocultar enlace
+                }
+            });
+
+        })();
+    </script>
+    <!-- FIN GUARDIÁN UNIVERSAL -->
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">MVP Soccer</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="usuarios.html">Usuarios</a></li>
+            <li><a href="categorias.html">Categorías</a></li>
+            <li><a href="jugadores.html" class="active">Jugadores</a></li>
+            <li><a href="tutores.html">Tutores</a></li>
+            <li><a href="pagos.html">Pagos</a></li>
+            <li><a href="calendario.html">Calendario</a></li>
+        </ul>
+        <div class="user-info-mini">
+            <span id="sidebar-user-name">Usuario</span>
+            <button id="sidebar-logout-btn" class="btn-logout-sidebar">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+        <header class="page-header">
+            <h2>Gestión de Jugadores</h2>
+            <button id="btn-create-player" class="btn-create">+ Nuevo Jugador</button>
+        </header>
+
+        <!-- SECCIÓN DE FILTROS -->
+        <section class="filters-container">
+            <div class="filter-group">
+                <label for="filter-search">Buscar (Nombre/Apellido)</label>
+                <input type="text" id="filter-search" class="filter-input" placeholder="Ej: Andres...">
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-year">Año</label>
+                <input type="number" id="filter-year" class="filter-input" placeholder="Ej: 2010">
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-status">Estado</label>
+                <select id="filter-status" class="filter-input">
+                    <option value="all">Todos</option>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- TABLA -->
+        <section class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellidos</th>
+                        <th>Año</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="players-table-body">
+                    <!-- Filas generadas por JS -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- MODAL DE JUGADOR -->
+    <div id="player-modal" class="modal-overlay">
+        <div class="modal">
+            <h3 id="modal-title">Nuevo Jugador</h3>
+            <form id="player-form">
+                <input type="hidden" id="player-id">
+
+                <div class="form-group">
+                    <label for="player-name">Nombre</label>
+                    <input type="text" id="player-name" name="nombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="player-lastname">Apellidos</label>
+                    <input type="text" id="player-lastname" name="apellidos" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="player-year">Año</label>
+                    <input type="number" id="player-year" name="año" placeholder="Ej: 2010" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="player-email">Correo Electrónico</label>
+                    <input type="email" id="player-email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="player-password">Contraseña</label>
+                    <input type="password" id="player-password" name="password"
+                        placeholder="Dejar vacío para mantener actual">
+                </div>
+
+                <div class="form-group">
+                    <label for="player-group">Asignar Grupo</label>
+                    <select id="player-group" name="grupo_id">
+                        <option value="">Selecciona el Año primero...</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="btn-cancel-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-save">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LÓGICA (JS) -->
+    <script>
+        const DB_KEY = 'mini_json_db_data';
+        const SESSION_KEY = 'mini_json_session_data';
+
+        // --- SERVICIOS COMPARTIDOS ---
+        class AuthService {
+            static getSession() {
+                const data = localStorage.getItem(SESSION_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            static logout() {
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        }
+
+        class DBService {
+            getData() {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : null;
+            }
+            saveData(data) {
+                localStorage.setItem(DB_KEY, JSON.stringify(data));
+            }
+        }
+
+        // --- CONTROLADOR DE JUGADORES ---
+        // --- CONTROLADOR DE JUGADORES (MEJORADO CON ASIGNACIÓN DE GRUPO) ---
+        class JugadoresController {
+            constructor() {
+                this.db = new DBService();
+                this.user = AuthService.getSession();
+
+                // Elementos DOM
+                this.tableBody = document.getElementById('players-table-body');
+                this.modal = document.getElementById('player-modal');
+                this.form = document.getElementById('player-form');
+                this.modalTitle = document.getElementById('modal-title');
+
+                this.inputId = document.getElementById('player-id');
+                this.inputName = document.getElementById('player-name');
+                this.inputLastname = document.getElementById('player-lastname');
+                this.inputYear = document.getElementById('player-year');
+                this.inputEmail = document.getElementById('player-email');
+                this.inputPassword = document.getElementById('player-password');
+                this.selectGroup = document.getElementById('player-group'); // NUEVO
+
+                this.filterSearch = document.getElementById('filter-search');
+                this.filterYear = document.getElementById('filter-year');
+                this.filterStatus = document.getElementById('filter-status');
+
+                this.btnCreate = document.getElementById('btn-create-player');
+                this.btnCancel = document.getElementById('btn-cancel-modal');
+                this.btnLogout = document.getElementById('sidebar-logout-btn');
+
+                this.init();
+            }
+
+            init() {
+                if (!this.user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                this.btnLogout.addEventListener('click', () => AuthService.logout());
+                this.btnCreate.addEventListener('click', () => this.openModal('create'));
+                this.btnCancel.addEventListener('click', () => this.closeModal());
+                this.form.addEventListener('submit', (e) => this.handleSave(e));
+
+                // NUEVO: Evento para filtrar categorias cuando se cambia el año
+                this.inputYear.addEventListener('input', () => this.populateGroupSelect(this.inputYear.value));
+
+                this.filterSearch.addEventListener('input', () => this.renderTable());
+                this.filterYear.addEventListener('input', () => this.renderTable());
+                this.filterStatus.addEventListener('change', () => this.renderTable());
+
+                this.renderTable();
+                document.getElementById('sidebar-user-name').textContent = this.user.nombre;
+            }
+
+            // NUEVO MÉTODO: Llenar select de categorias filtrando por año
+            populateGroupSelect(yearFilter) {
+                const db = this.db.getData();
+                this.selectGroup.innerHTML = '<option value="">Sin Grupo</option>';
+
+                if (db && db['mvp soccer'] && db['mvp soccer'].categorias && db['mvp soccer'].categorias.rows) {
+                    const groups = db['mvp soccer'].categorias.rows.filter(g => g.estado === 'activo');
+
+                    // Si hay filtro de año, usamos string para comparar (ej: "2010")
+                    const filteredGroups = yearFilter ? groups.filter(g => g.year_target == yearFilter) : groups;
+
+                    filteredGroups.forEach(g => {
+                        const option = document.createElement('option');
+                        option.value = g.id;
+                        option.textContent = `${g.nombre} (Año ${g.year_target})`;
+                        this.selectGroup.appendChild(option);
+                    });
+                }
+            }
+
+            getFilteredPlayers() {
+                const db = this.db.getData();
+                if (!db || !db['mvp soccer'] || !db['mvp soccer'].jugadores) {
+                    return [];
+                }
+
+                const allPlayers = db['mvp soccer'].jugadores.rows;
+                const searchVal = this.filterSearch.value.toLowerCase();
+                const yearVal = this.filterYear.value;
+                const statusVal = this.filterStatus.value;
+
+                return allPlayers.filter(p => {
+                    const matchText = p.nombre.toLowerCase().includes(searchVal) ||
+                        p.apellidos.toLowerCase().includes(searchVal);
+                    const matchYear = yearVal === '' || p.año === yearVal;
+                    const matchStatus = statusVal === 'all' || p.estado === statusVal;
+
+                    return matchText && matchYear && matchStatus;
+                });
+            }
+
+            renderTable() {
+                const players = this.getFilteredPlayers();
+                this.tableBody.innerHTML = '';
+
+                if (players.length === 0) {
+                    this.tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No se encontraron jugadores con estos filtros</td></tr>';
+                    return;
+                }
+
+                players.forEach(p => {
+                    const tr = document.createElement('tr');
+
+                    const statusClass = p.estado === 'activo' ? 'active' : 'inactive';
+                    const statusText = p.estado === 'activo' ? 'Activo' : 'Inactivo';
+
+                    tr.innerHTML = `
+                        <td>${p.nombre}</td>
+                        <td>${p.apellidos}</td>
+                        <td>${p.año}</td>
+                        <td>${p.email}</td>
+                        <td>
+                            <button class="action-btn btn-toggle ${statusClass}" onclick="window.app.toggleStatus(${p.id})">
+                                ${statusText}
+                            </button>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="action-btn" onclick="window.app.editPlayer(${p.id})">Editar</button>
+                            </div>
+                        </td>
+                    `;
+                    this.tableBody.appendChild(tr);
+                });
+            }
+
+            viewProfile(playerId) {
+                window.location.href = `perfil-jugador.html?id=${playerId}`;
+            }
+
+            openModal(mode, playerId = null) {
+                this.modal.classList.add('open');
+                if (mode === 'create') {
+                    this.modalTitle.textContent = 'Nuevo Jugador';
+                    this.form.reset();
+                    this.inputId.value = '';
+                    this.inputPassword.required = true;
+                    // Cargar todos los categorias al inicio
+                    this.populateGroupSelect(null);
+                } else {
+                    this.modalTitle.textContent = 'Editar Jugador';
+                    this.loadPlayerData(playerId);
+                    this.inputPassword.required = false;
+                }
+            }
+
+            closeModal() {
+                this.modal.classList.remove('open');
+            }
+
+            loadPlayerData(playerId) {
+                const db = this.db.getData();
+                const player = db['mvp soccer'].jugadores.rows.find(p => p.id === playerId);
+                if (player) {
+                    this.inputId.value = player.id;
+                    this.inputName.value = player.nombre;
+                    this.inputLastname.value = player.apellidos;
+                    this.inputYear.value = player.año;
+                    this.inputEmail.value = player.email;
+                    this.inputPassword.value = '';
+
+                    // Cargar categorias filtrando por el año del jugador
+                    this.populateGroupSelect(player.año);
+                    this.selectGroup.value = player.grupo_id || '';
+                }
+            }
+
+            handleSave(e) {
+                e.preventDefault();
+                const db = this.db.getData();
+
+                if (!db['mvp soccer'].jugadores) {
+                    db['mvp soccer'].jugadores = { columns: [], rows: [] };
+                }
+
+                const players = db['mvp soccer'].jugadores.rows;
+
+                const id = this.inputId.value ? parseInt(this.inputId.value) : Date.now();
+                const nombre = this.inputName.value;
+                const apellidos = this.inputLastname.value;
+                const año = this.inputYear.value;
+                const email = this.inputEmail.value;
+                const password = this.inputPassword.value;
+                const grupo_id = this.selectGroup.value || null; // Guardar grupo
+
+                let playerIndex = players.findIndex(p => p.id === id);
+
+                if (playerIndex >= 0) {
+                    players[playerIndex].nombre = nombre;
+                    players[playerIndex].apellidos = apellidos;
+                    players[playerIndex].año = año;
+                    players[playerIndex].email = email;
+                    players[playerIndex].grupo_id = grupo_id; // Actualizar grupo
+                    if (password) players[playerIndex].password = password;
+                } else {
+                    const newPlayer = {
+                        id: id,
+                        nombre: nombre,
+                        apellidos: apellidos,
+                        año: año,
+                        email: email,
+                        password: password,
+                        estado: 'activo',
+                        grupo_id: grupo_id // Asignar grupo
+                    };
+                    players.push(newPlayer);
+                }
+
+                this.db.saveData(db);
+                this.closeModal();
+                this.renderTable();
+            }
+
+            editPlayer(playerId) {
+                this.openModal('edit', playerId);
+            }
+
+            toggleStatus(playerId) {
+                const db = this.db.getData();
+                const players = db['mvp soccer'].jugadores.rows;
+                const playerIndex = players.findIndex(p => p.id === playerId);
+
+                if (playerIndex >= 0) {
+                    players[playerIndex].estado = players[playerIndex].estado === 'activo' ? 'inactivo' : 'activo';
+                    this.db.saveData(db);
+                    this.renderTable();
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new JugadoresController();
+        });
+    </script>
+</body>
+
+</html>
